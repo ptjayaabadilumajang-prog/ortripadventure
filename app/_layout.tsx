@@ -8,6 +8,7 @@ import "react-native-reanimated";
 import { Platform } from "react-native";
 import "@/lib/_core/nativewind-pressable";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { WhatsAppFab } from "@/components/whatsapp-fab";
 import {
   SafeAreaFrameContext,
   SafeAreaInsetsContext,
@@ -90,6 +91,7 @@ export default function RootLayout() {
             <Stack.Screen name="oauth/callback" />
           </Stack>
           <StatusBar style="auto" />
+          <WhatsAppFab />
         </QueryClientProvider>
       </trpc.Provider>
     </GestureHandlerRootView>

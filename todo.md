@@ -26,3 +26,10 @@
 - [x] Replace demo contact points with the official admin WhatsApp numbers, email, social links, website, and supplied logo.
 - [x] Add an official contact/support section and wire contact actions to the correct destinations.
 - [x] Validate the updated contact and brand data across the app and save a new checkpoint.
+
+- [x] Add dedicated Privacy Policy page.
+- [x] Add dedicated Booking Terms & Conditions page.
+- [x] Add a reusable WhatsApp booking action with official Or.Trip contact routing.
+- [x] Add WhatsApp booking CTA to the Home hero and every trip detail page.
+- [x] Add a sticky floating WhatsApp button across all app pages.
+- [x] Validate legal navigation and WhatsApp actions on mobile portrait layouts.

@@ -5,6 +5,7 @@ import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Pill, PrimaryButton, SectionHeader, TripCard } from '@/components/trip-ui';
 import { trips } from '@/lib/demo-data';
+import { LegalLinks, openWhatsApp } from '@/components/whatsapp-fab';
 
 export default function HomeScreen() {
   return (
@@ -20,7 +21,7 @@ export default function HomeScreen() {
 
         <View className="mx-5 overflow-hidden rounded-[28px] bg-primary">
           <Image source={{ uri: 'https://images.unsplash.com/photo-1464278533981-50106e6176b1?auto=format&fit=crop&w=1200&q=85' }} contentFit="cover" style={{ height: 220, width: '100%', opacity: 0.62 }} />
-          <View className="absolute inset-0 justify-end p-5"><Text className="font-body text-xs font-extrabold uppercase tracking-[3px] text-accent">Jelajah dengan ritme sendiri</Text><Text className="mt-2 max-w-[270px] font-heading text-3xl font-bold leading-9 text-white">Temukan cerita baru di ketinggian.</Text><Text className="mt-2 max-w-[290px] font-body text-xs leading-5 text-white/85">Open trip hangat, private trip yang fleksibel, dan perjalanan yang lebih bertanggung jawab.</Text><Pressable onPress={() => router.push('/(tabs)/explore')} className="mt-4 flex-row items-center self-start rounded-full bg-white px-4 py-3"><Text className="font-body text-xs font-extrabold text-primary">Mulai eksplorasi</Text><IconSymbol name="arrow.right" size={15} color="#2D5A27" style={{ marginLeft: 7 }} /></Pressable></View>
+          <View className="absolute inset-0 justify-end p-5"><Text className="font-body text-xs font-extrabold uppercase tracking-[3px] text-accent">Jelajah dengan ritme sendiri</Text><Text className="mt-2 max-w-[270px] font-heading text-3xl font-bold leading-9 text-white">Temukan cerita baru di ketinggian.</Text><Text className="mt-2 max-w-[290px] font-body text-xs leading-5 text-white/85">Open trip hangat, private trip yang fleksibel, dan perjalanan yang lebih bertanggung jawab.</Text><View className="mt-4"><Pressable onPress={() => router.push('/(tabs)/explore')} className="flex-row items-center self-start rounded-full bg-white px-4 py-3"><Text className="font-body text-xs font-extrabold text-primary">Mulai eksplorasi</Text><IconSymbol name="arrow.right" size={15} color="#2D5A27" style={{ marginLeft: 7 }} /></Pressable><Pressable onPress={() => openWhatsApp('Halo Or.Trip Adventure, saya ingin booking open trip.')} className="mt-2 flex-row items-center self-start rounded-full bg-[#1F8F45] px-4 py-3"><IconSymbol name="phone.fill" size={15} color="#FFFFFF" /><Text className="ml-2 font-body text-xs font-extrabold text-white">Booking via WhatsApp</Text></Pressable></View></View>
         </View>
 
         <View className="mt-6 px-5"><ScrollView horizontal showsHorizontalScrollIndicator={false}><Pill label="Semua trip" active /><Pill label="Open trip" /><Pill label="Private trip" /><Pill label="Untuk pemula" /></ScrollView></View>
@@ -28,7 +29,7 @@ export default function HomeScreen() {
 
         <View className="mx-5 mt-7 rounded-3xl border border-border bg-surface p-5"><View className="flex-row items-center"><View className="h-10 w-10 items-center justify-center rounded-2xl bg-accent"><IconSymbol name="sparkles" size={20} color="#2D5A27" /></View><View className="ml-3 flex-1"><Text className="font-heading text-lg font-bold text-foreground">Butuh perjalanan khusus?</Text><Text className="mt-1 font-body text-xs leading-5 text-muted">Ceritakan kebutuhan grupmu, kami bantu rancang dari awal.</Text></View></View><View className="mt-4"><PrimaryButton label="Rancang private trip" icon="arrow.right" onPress={() => router.push('/private-trip')} /></View></View>
 
-        <View className="mt-7 px-5"><SectionHeader title="Kenapa Or.Trip?" action="" /><View className="flex-row justify-between"><TrustItem icon="shield.fill" title="Safety-first" body="Briefing & guide" /><TrustItem icon="person.2.fill" title="Small group" body="Lebih personal" /><TrustItem icon="checkmark.circle.fill" title="Jelas dari awal" body="Harga transparan" /></View></View>
+        <View className="mt-7 px-5"><SectionHeader title="Kenapa Or.Trip?" action="" /><View className="flex-row justify-between"><TrustItem icon="shield.fill" title="Safety-first" body="Briefing & guide" /><TrustItem icon="person.2.fill" title="Small group" body="Lebih personal" /><TrustItem icon="checkmark.circle.fill" title="Jelas dari awal" body="Harga transparan" /></View><LegalLinks /></View>
       </ScrollView>
     </ScreenContainer>
   );
