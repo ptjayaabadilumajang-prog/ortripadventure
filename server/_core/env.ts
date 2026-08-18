@@ -8,4 +8,7 @@ export const ENV = {
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
   bookingSpreadsheetId: "1QUaAQmpJsD6QmMjIlYZtVNqobYpf-D2ZMNgzltpzUxk",
+  whatsappApiToken: process.env.WHATSAPP_CLOUD_ACCESS_TOKEN ?? "",
+  whatsappPhoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID ?? "",
+  whatsappAdminRecipient: process.env.WHATSAPP_ADMIN_RECIPIENT ?? "",
 };

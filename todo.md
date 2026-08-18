@@ -53,3 +53,9 @@
 - [x] Add a secure server-side booking submission path for Google Sheets recording.
 - [ ] Configure and validate the target Google Sheet connection and required permissions.
 - [x] Test gallery, upload validation, booking submission, and Sheets error states before checkpointing.
+
+- [x] Add a user-facing setup guide for creating and deploying the Google Apps Script Web App URL.
+- [x] Add booking validation statuses and an admin validation action.
+- [x] Add customer-visible validation status refresh on the booking confirmation page.
+- [x] Add automatic WhatsApp notification support with a click-to-chat fallback.
+- [x] Add configuration documentation for WhatsApp Cloud API credentials and validate the new flows.
