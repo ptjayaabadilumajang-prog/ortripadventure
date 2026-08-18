@@ -39,3 +39,11 @@
 - [x] Add mandatory Privacy Policy and Booking Terms consent before booking can continue.
 - [x] Generate WhatsApp booking messages containing trip name, date, and participant count.
 - [x] Validate the new booking flow and skill package, then save a checkpoint.
+
+- [x] Replace all Expo logo, splash, favicon, and adaptive-icon assets with the supplied logo.png.
+- [x] Add the Ranu Kumbolo premium package model with four meeting-point pricing options.
+- [x] Build the dedicated Ranu Kumbolo package experience with integrated package selection and booking CTA.
+- [x] Add the full Ranu Kumbolo facilities, meals, benefits, legal trust badges, and vertical timeline.
+- [x] Add Ranu Kumbolo, Semeru, Bromo, and B29 gallery content with lightbox-style viewing.
+- [x] Add Ranu Kumbolo FAQ, testimonials, and final conversion CTA content.
+- [x] Validate the updated logo, package booking flow, and mobile presentation, then save a checkpoint.

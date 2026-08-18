@@ -28,9 +28,9 @@ export const trips: Trip[] = [
     faqs: [{ id: 'bromo-meeting', question: 'Meeting point-nya di mana?', answer: 'Meeting point dikonfirmasi admin setelah booking, menyesuaikan titik keberangkatan dan kebutuhan peserta.' }, { id: 'bromo-beginner', question: 'Apakah cocok untuk pemula?', answer: 'Cocok. Ritme perjalanan santai dan ada briefing serta pendampingan guide.' }, { id: 'bromo-gear', question: 'Apa yang perlu saya bawa?', answer: 'Bawa jaket hangat, sepatu nyaman, obat pribadi, identitas, dan botol minum.' }],
   },
   {
-    id: 'ranu-kumbolo', title: 'Ranu Kumbolo Slow Hike', location: 'Semeru, Jawa Timur', province: 'Jawa Timur', type: 'Open Trip',
-    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=85', date: '3–5 Okt 2026', duration: '3 hari 2 malam', difficulty: 'Menengah', price: 1450000, seats: 5, rating: 4.8, tag: 'New departure',
-    description: 'Pendakian santai untuk menikmati Ranu Kumbolo dengan ritme yang aman, pendampingan guide, dan briefing persiapan lengkap.',
+    id: 'ranu-kumbolo', title: 'Open Trip Ranu Kumbolo', location: 'Semeru, Jawa Timur', province: 'Jawa Timur', type: 'Open Trip',
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=85', date: '3–5 Okt 2026', duration: '3 hari 2 malam', difficulty: 'Menengah', price: 900000, seats: 12, rating: 4.8, tag: 'Paket favorit',
+    description: 'Nikmati pengalaman camping terbaik di Ranu Kumbolo bersama tim profesional, fasilitas lengkap, dan pelayanan terbaik.',
     includes: ['Tenda dan perlengkapan camp', 'Porter logistik', 'Guide', 'Makan 5x', 'P3K dan safety kit'],
     itinerary: ['Hari 1 · Briefing, perjalanan ke Ranu Pani, bermalam', 'Hari 2 · Trek ke Ranu Kumbolo, camp dan menikmati sunset', 'Hari 3 · Sunrise, turun, evaluasi, kembali ke Malang'],
     faqs: [{ id: 'ranu-permit', question: 'Apakah izin pendakian sudah termasuk?', answer: 'Administrasi kawasan dan kebutuhan izin dibantu sesuai ketentuan yang berlaku pada tanggal perjalanan.' }, { id: 'ranu-fitness', question: 'Seberapa berat treknya?', answer: 'Levelnya menengah. Kamu perlu cukup fit untuk berjalan beberapa jam dengan daypack.' }, { id: 'ranu-weather', question: 'Bagaimana jika cuaca berubah?', answer: 'Guide akan menyesuaikan itinerary berdasarkan kondisi lapangan dan prioritas keselamatan.' }],
@@ -53,12 +53,40 @@ export const trips: Trip[] = [
   },
 ];
 
+export const ranuPackages = [
+  { id: 'mepo-ranu-pani', name: 'MEPO RANU PANI', price: 900000, meetingPoint: 'Ranu Pani', note: 'Pilihan paling praktis untuk peserta yang datang mandiri.' },
+  { id: 'mepo-lumajang', name: 'MEPO LUMAJANG', price: 1150000, meetingPoint: 'Lumajang', note: 'Termasuk koordinasi keberangkatan dari kota Lumajang.' },
+  { id: 'mepo-malang', name: 'MEPO MALANG', price: 1300000, meetingPoint: 'Malang', note: 'Meeting point nyaman untuk peserta dari Malang dan sekitarnya.' },
+  { id: 'mepo-surabaya', name: 'MEPO SURABAYA', price: 1450000, meetingPoint: 'Surabaya', note: 'Pilihan lengkap dengan koordinasi dari Surabaya.' },
+];
+export const ranuFacilities = ['SIMAKSI', 'Tour Leader', 'PPGST', 'Welcome Drink', 'Tenda', 'Alat Masak', 'Snack Camp', 'Minuman Isotonik', 'P3K', 'Porter', 'Kursi', 'Meja', 'Sop Buah', 'HT', 'Bantal Tidur', 'Tisu dalam Tenda', 'Kantong Sampah', 'SIMAKSI Ranu Regulo', 'Asuransi', 'Porter Masak', 'Materai', 'Dokumentasi Foto & Video', 'Souvenir'];
+export const ranuMeals = ['Breakfast', 'Makan Siang', 'Makan Malam'];
+export const ranuTimeline = [
+  { day: 'Hari Pertama', items: ['Meeting point', 'Registrasi', 'Menuju Ranu Pani', 'Check SIMAKSI', 'Trekking', 'Sampai Ranu Kumbolo', 'Camping', 'Snack camp', 'Dinner', 'Sharing free time'] },
+  { day: 'Hari Kedua', items: ['Sunrise', 'Breakfast', 'Foto', 'Makan siang', 'Packing', 'Turun', 'Finish'] },
+];
+export const testimonials = [
+  { id: 't1', name: 'Nadia Putri', city: 'Surabaya', rating: 5, quote: 'Briefing jelas, fasilitas lengkap, dan timnya sigap dari meeting point sampai turun.' },
+  { id: 't2', name: 'Fajar Ramadhan', city: 'Malang', rating: 5, quote: 'Ranu Kumbolo jadi terasa lebih nyaman untuk first-timer karena semua kebutuhan sudah terkoordinasi.' },
+  { id: 't3', name: 'Aulia Sari', city: 'Lumajang', rating: 5, quote: 'Dokumentasi dan pelayanan guide sangat membantu. Pemandangannya luar biasa.' },
+];
+
 export const guides = [
   { name: 'Arif Pratama', role: 'Lead Guide', experience: '8 tahun pengalaman', rating: 4.9, image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80' },
   { name: 'Sinta Ayuning', role: 'Mountain Guide', experience: 'Spesialis Semeru & Bromo', rating: 5.0, image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80' },
 ];
 
 export const gallery = [
+  { id: 'ranu1', title: 'Ranu Kumbolo Lake', category: 'Ranu Kumbolo', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80' },
+  { id: 'ranu2', title: 'Morning at the Lake', category: 'Ranu Kumbolo', image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=80' },
+  { id: 'ranu3', title: 'Camp on the Ridge', category: 'Ranu Kumbolo', image: 'https://images.unsplash.com/photo-1475483768296-6163e08872a1?auto=format&fit=crop&w=900&q=80' },
+  { id: 'ranu4', title: 'Trail Friends', category: 'Ranu Kumbolo', image: 'https://images.unsplash.com/photo-1526772662000-3f88f10405ff?auto=format&fit=crop&w=900&q=80' },
+  { id: 'semeru1', title: 'Semeru Landscape', category: 'Semeru', image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=900&q=80' },
+  { id: 'semeru2', title: 'Mountain Trail', category: 'Semeru', image: 'https://images.unsplash.com/photo-1464278533981-50106e6176b1?auto=format&fit=crop&w=900&q=80' },
+  { id: 'bromo1', title: 'Bromo Sunrise', category: 'Gunung Bromo', image: 'https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?auto=format&fit=crop&w=900&q=80' },
+  { id: 'bromo2', title: 'Sea of Sand', category: 'Gunung Bromo', image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=80' },
+  { id: 'b29-1', title: 'Sunrise B29', category: 'Sunrise B29', image: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=900&q=80' },
+  { id: 'b29-2', title: 'Cloudline Camp', category: 'Sunrise B29', image: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=900&q=80' },
   { id: 'g1', title: 'Sunrise Penanjakan', category: 'Sunrise', image: 'https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?auto=format&fit=crop&w=800&q=80' },
   { id: 'g2', title: 'Ranu Kumbolo Morning', category: 'Pendakian', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80' },
   { id: 'g3', title: 'Campfire Stories', category: 'Camping', image: 'https://images.unsplash.com/photo-1475483768296-6163e08872a1?auto=format&fit=crop&w=800&q=80' },
@@ -83,6 +111,7 @@ export const formatIDR = (value: number) => `Rp ${value.toLocaleString('id-ID')}
 export const buildBookingWhatsAppMessage = ({ tripName, date, participants }: { tripName: string; date: string; participants: number }) => `Halo Or.Trip Adventure, saya ingin booking ${tripName}.\nTanggal: ${date}\nJumlah peserta: ${participants}`;
 export const isBookingConsentComplete = (privacyAccepted: boolean, termsAccepted: boolean) => privacyAccepted && termsAccepted;
 export const getTrip = (id?: string) => trips.find((trip) => trip.id === id) ?? trips[0];
+export const getRanuPackage = (id?: string) => ranuPackages.find((item) => item.id === id) ?? ranuPackages[0];
 
 
 export const officialContacts = {
