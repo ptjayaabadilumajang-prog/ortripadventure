@@ -1,3 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Mulish:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --color-primary: #2D5A27;
+  --color-background: #F1F4F1;
+  --color-surface: #FFFFFF;
+  --color-foreground: #1A251B;
+  --color-muted: #617064;
+  --color-border: #D5DED5;
+  --color-success: #3C7A34;
+  --color-warning: #B7791F;
+  --color-error: #B83A3A;
+  --color-accent: #A3C9A8;
+  --color-neutral: #E2E8E2;
+}
+
+html, body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: 'Mulish', sans-serif;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Lora', serif;
+}

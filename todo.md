@@ -1,0 +1,24 @@
+# Project TODO
+
+- [x] Review the supplied Or.Trip implementation documents and extract the final feature scope.
+- [x] Review the supplied public reference websites for information architecture and content patterns.
+- [x] Create a branded Or.Trip Adventure app icon and apply it to all required asset locations.
+- [x] Update app branding configuration with the user-facing app name and logo URL.
+- [x] Configure theme tokens for #2D5A27, #F1F4F1, #E2E8E2, #A3C9A8, and #1A251B.
+- [x] Load and apply Lora heading typography and Mulish body typography.
+- [x] Implement bottom-tab navigation for Home, Explore, Gallery, Journal, and Profile.
+- [x] Build Home screen with hero trip, search, quick filters, featured trips, and private-trip CTA.
+- [x] Build Explore screen with trip search and filter controls.
+- [x] Build Trip Detail screen with itinerary, inclusions, guide, safety, and booking CTA.
+- [x] Build booking form with participant, contact, citizenship, currency, and price summary states.
+- [x] Build payment screen with payment method and booking confirmation states.
+- [x] Build My Booking / confirmation view with booking code and support action.
+- [x] Build Private Trip request flow.
+- [x] Build Gallery screen with category filters and visual trip moments.
+- [x] Build Journal list and article detail screens.
+- [x] Build destination rules screen for Semeru and related destinations.
+- [x] Add local demo data models for trips, guides, gallery, journal, bookings, and rules.
+- [x] Add deterministic unit tests for pricing/citizenship and booking state transitions.
+- [x] Run type checks, lint, and tests.
+- [x] Verify important screens at mobile portrait viewport and fix visible issues.
+- [x] Save the final project checkpoint and provide the project version to the user.
