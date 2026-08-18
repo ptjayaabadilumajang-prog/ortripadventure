@@ -47,3 +47,9 @@
 - [x] Add Ranu Kumbolo, Semeru, Bromo, and B29 gallery content with lightbox-style viewing.
 - [x] Add Ranu Kumbolo FAQ, testimonials, and final conversion CTA content.
 - [x] Validate the updated logo, package booking flow, and mobile presentation, then save a checkpoint.
+
+- [x] Add a Ranu Kumbolo photo gallery with selectable full-screen lightbox viewing.
+- [x] Add payment-proof file selection and upload state to the booking confirmation flow.
+- [x] Add a secure server-side booking submission path for Google Sheets recording.
+- [ ] Configure and validate the target Google Sheet connection and required permissions.
+- [x] Test gallery, upload validation, booking submission, and Sheets error states before checkpointing.

@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PrimaryButton, SectionHeader } from '@/components/trip-ui';
@@ -14,6 +14,7 @@ export default function TripDetailScreen() {
   const isRanu = trip.id === 'ranu-kumbolo';
   const [selectedPackageId, setSelectedPackageId] = useState(packageId ?? ranuPackages[0].id);
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const selectedPackage = getRanuPackage(selectedPackageId);
   const displayPrice = isRanu ? selectedPackage.price : trip.price;
   const bookingMessage = buildBookingWhatsAppMessage({ tripName: isRanu ? `${trip.title} · ${selectedPackage.name}` : trip.title, date: trip.date, participants: 1 });
@@ -34,22 +35,29 @@ export default function TripDetailScreen() {
           <Text className="mt-4 font-body text-sm leading-6 text-muted">{isRanu ? 'Nikmati pengalaman camping terbaik di Ranu Kumbolo bersama tim profesional, fasilitas lengkap, dan pelayanan terbaik.' : trip.description}</Text>
           {isRanu && <View className="mt-5 flex-row flex-wrap"><TrustBadge label="Berizin" /><TrustBadge label="Guide Profesional" /><TrustBadge label="Asuransi" /></View>}
 
-          {isRanu ? <RanuContent selectedPackageId={selectedPackageId} setSelectedPackageId={setSelectedPackageId} expandedFaq={expandedFaq} setExpandedFaq={setExpandedFaq} bookingMessage={bookingMessage} trip={trip} /> : <StandardContent trip={trip} expandedFaq={expandedFaq} setExpandedFaq={setExpandedFaq} bookingMessage={bookingMessage} />}
+          {isRanu ? <RanuContent selectedPackageId={selectedPackageId} setSelectedPackageId={setSelectedPackageId} expandedFaq={expandedFaq} setExpandedFaq={setExpandedFaq} bookingMessage={bookingMessage} trip={trip} setLightboxImage={setLightboxImage} /> : <StandardContent trip={trip} expandedFaq={expandedFaq} setExpandedFaq={setExpandedFaq} bookingMessage={bookingMessage} />}
         </View>
       </ScrollView>
+      <Modal visible={Boolean(lightboxImage)} transparent animationType="fade" onRequestClose={() => setLightboxImage(null)}>
+        <View className="flex-1 items-center justify-center bg-[#07100A]/95 px-4">
+          <Pressable onPress={() => setLightboxImage(null)} className="absolute right-5 top-14 z-10 h-11 w-11 items-center justify-center rounded-full bg-white/15"><IconSymbol name="xmark" size={22} color="#FFFFFF" /></Pressable>
+          {lightboxImage ? <Image source={{ uri: lightboxImage }} contentFit="contain" style={{ height: '72%', width: '100%' }} /> : null}
+          <Text className="mt-5 font-body text-xs font-bold uppercase tracking-widest text-white/70">Ranu Kumbolo · Or.Trip Adventure</Text>
+        </View>
+      </Modal>
       <View className="absolute bottom-0 left-0 right-0 border-t border-border bg-surface px-5 pb-6 pt-4"><View className="flex-row items-center justify-between"><View><Text className="font-body text-[10px] text-muted">Mulai dari</Text><Text className="font-body text-lg font-extrabold text-primary">{formatIDR(displayPrice)}</Text></View><View className="w-[56%]"><PrimaryButton label="Booking sekarang" onPress={() => router.push(`/booking?tripId=${trip.id}${isRanu ? `&package=${selectedPackage.id}` : ''}` as any)} /></View></View></View>
     </ScreenContainer>
   );
 }
 
-function RanuContent({ selectedPackageId, setSelectedPackageId, expandedFaq, setExpandedFaq, bookingMessage, trip }: any) {
+function RanuContent({ selectedPackageId, setSelectedPackageId, expandedFaq, setExpandedFaq, bookingMessage, trip, setLightboxImage }: any) {
   return <>
     <View className="mt-6"><SectionHeader title="Pilih paket meeting point" action="" />{ranuPackages.map((item) => <Pressable key={item.id} onPress={() => setSelectedPackageId(item.id)} className={`mb-3 rounded-3xl border p-4 ${selectedPackageId === item.id ? 'border-primary bg-[#E2E8E2]' : 'border-border bg-surface'}`}><View className="flex-row items-start"><View className="flex-1"><Text className="font-body text-xs font-extrabold uppercase tracking-widest text-primary">{item.meetingPoint}</Text><Text className="mt-1 font-heading text-lg font-bold text-foreground">{item.name}</Text><Text className="mt-1 font-body text-xs leading-5 text-muted">{item.note}</Text></View><Text className="font-body text-sm font-extrabold text-primary">{formatIDR(item.price)}</Text></View></Pressable>)}</View>
     <View className="mt-5 rounded-3xl bg-neutral p-4"><Text className="font-heading text-lg font-bold text-foreground">Semua paket include</Text><View className="mt-3 flex-row flex-wrap">{ranuFacilities.map((item) => <View key={item} className="mb-2 w-1/2 flex-row items-center"><IconSymbol name="checkmark.circle.fill" size={16} color="#2D5A27" /><Text className="ml-2 pr-2 font-body text-xs text-foreground">{item}</Text></View>)}</View></View>
     <View className="mt-6"><SectionHeader title="Makan selama perjalanan" action="" /><View className="flex-row justify-between">{ranuMeals.map((meal) => <View key={meal} className="w-[31%] rounded-2xl bg-surface p-3"><Text className="font-body text-xs font-extrabold text-primary">{meal === 'Breakfast' ? '🍳' : meal === 'Makan Siang' ? '🍛' : '🍲'}</Text><Text className="mt-2 font-body text-xs font-bold text-foreground">{meal}</Text></View>)}</View></View>
     <View className="mt-7"><SectionHeader title="Kenapa pilih Or.Trip?" action="" /><View className="flex-row flex-wrap"><Benefit icon="person.fill" title="Professional Guide" body="Berpengalaman lebih dari 10 tahun" /><Benefit icon="bag.fill" title="Peralatan Lengkap" body="Peralatan camping berkualitas" /><Benefit icon="shield.fill" title="Fasilitas Premium" body="Nyaman dan aman" /><Benefit icon="checkmark.seal.fill" title="Legal & Asuransi" body="SIMAKSI resmi dan peserta terlindungi" /></View></View>
     <View className="mt-7"><SectionHeader title="Timeline trip" action="" />{ranuTimeline.map((group) => <View key={group.day} className="mb-5"><Text className="font-heading text-lg font-bold text-primary">{group.day}</Text>{group.items.map((item, index) => <View key={item} className="flex-row"><View className="w-7 items-center"><View className="mt-2 h-3 w-3 rounded-full bg-primary" />{index < group.items.length - 1 && <View className="h-7 w-px bg-[#A3C9A8]" />}</View><Text className="flex-1 py-1.5 font-body text-sm text-muted">{item}</Text></View>)}</View>)}</View>
-    <GalleryPreview />
+    <GalleryPreview onOpen={setLightboxImage} />
     <TestimonialPreview />
     <FaqSection trip={trip} expandedFaq={expandedFaq} setExpandedFaq={setExpandedFaq} />
     <View className="mt-7 rounded-3xl bg-primary p-5"><Text className="font-heading text-2xl font-bold text-white">Siap berpetualang ke Ranu Kumbolo?</Text><Text className="mt-2 font-body text-sm leading-5 text-white/80">Pilih meeting point, isi data peserta, lalu selesaikan booking dalam alur yang ringkas.</Text><Pressable onPress={() => openWhatsApp(bookingMessage)} className="mt-4 flex-row items-center justify-center rounded-full bg-white px-4 py-3"><IconSymbol name="phone.fill" size={17} color="#2D5A27" /><Text className="ml-2 font-body text-xs font-extrabold text-primary">Chat WhatsApp</Text></Pressable></View>
@@ -60,7 +68,7 @@ function StandardContent({ trip, expandedFaq, setExpandedFaq, bookingMessage }: 
 
 function FaqSection({ trip, expandedFaq, setExpandedFaq }: any) { return <View className="mt-7"><SectionHeader title="FAQ perjalanan" action="" />{trip.faqs.map((faq: any) => <Pressable key={faq.id} onPress={() => setExpandedFaq(expandedFaq === faq.id ? null : faq.id)} className="mb-3 rounded-2xl border border-border bg-surface p-4"><View className="flex-row items-center"><Text className="flex-1 font-body text-sm font-extrabold text-foreground">{faq.question}</Text><IconSymbol name={expandedFaq === faq.id ? 'chevron.up' : 'chevron.down'} size={18} color="#2D5A27" /></View>{expandedFaq === faq.id && <Text className="mt-3 font-body text-sm leading-6 text-muted">{faq.answer}</Text>}</Pressable>)}</View>; }
 
-function GalleryPreview() { return <View className="mt-7"><SectionHeader title="Galeri perjalanan" action="Lihat semua" onAction={() => router.push('/gallery')} /><View className="flex-row flex-wrap justify-between">{gallery.slice(0, 6).map((item) => <Image key={item.id} source={{ uri: item.image }} contentFit="cover" style={{ width: '31%', height: 92, borderRadius: 16, marginBottom: 8 }} />)}</View></View>; }
+function GalleryPreview({ onOpen }: { onOpen: (image: string) => void }) { return <View className="mt-7"><SectionHeader title="Galeri perjalanan" action="Lihat semua" onAction={() => router.push('/gallery')} /><View className="flex-row flex-wrap justify-between">{gallery.slice(0, 6).map((item) => <Pressable key={item.id} onPress={() => onOpen(item.image)}><Image source={{ uri: item.image }} contentFit="cover" style={{ width: 108, height: 92, borderRadius: 16, marginBottom: 8 }} /></Pressable>)}</View></View>; }
 function TestimonialPreview() { return <View className="mt-7"><SectionHeader title="Cerita peserta" action="" />{testimonials.slice(0, 2).map((item) => <View key={item.id} className="mb-3 rounded-3xl border border-border bg-surface p-4"><Text className="font-body text-sm leading-6 text-foreground">“{item.quote}”</Text><Text className="mt-3 font-body text-xs font-extrabold text-primary">{item.name} · {item.city} · {'★'.repeat(item.rating)}</Text></View>)}</View>; }
 function TrustBadge({ label }: { label: string }) { return <View className="mb-2 mr-2 flex-row items-center rounded-full bg-[#E2E8E2] px-3 py-2"><IconSymbol name="checkmark" size={13} color="#2D5A27" /><Text className="ml-1 font-body text-[10px] font-extrabold text-primary">{label}</Text></View>; }
 function Benefit({ icon, title, body }: { icon: any; title: string; body: string }) { return <View className="mb-3 w-1/2 pr-2"><View className="rounded-2xl bg-surface p-3"><IconSymbol name={icon} size={18} color="#2D5A27" /><Text className="mt-2 font-body text-xs font-extrabold text-foreground">{title}</Text><Text className="mt-1 font-body text-[10px] leading-4 text-muted">{body}</Text></View></View>; }
