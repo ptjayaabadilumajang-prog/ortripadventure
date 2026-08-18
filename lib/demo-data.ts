@@ -15,6 +15,7 @@ export type Trip = {
   description: string;
   includes: string[];
   itinerary: string[];
+  faqs: { id: string; question: string; answer: string }[];
 };
 
 export const trips: Trip[] = [
@@ -24,6 +25,7 @@ export const trips: Trip[] = [
     description: 'Menyambut matahari terbit dari Penanjakan, menikmati lautan pasir, dan mengakhiri hari dengan suasana hangat di homestay lokal.',
     includes: ['Transportasi lokal', 'Homestay 1 malam', 'Guide bersertifikat', 'Dokumentasi basic', 'Tiket destinasi'],
     itinerary: ['Hari 1 · Berangkat dari Malang, check-in, briefing keselamatan', 'Hari 2 · Sunrise Penanjakan, Kawah Bromo, Pasir Berbisik, pulang'],
+    faqs: [{ id: 'bromo-meeting', question: 'Meeting point-nya di mana?', answer: 'Meeting point dikonfirmasi admin setelah booking, menyesuaikan titik keberangkatan dan kebutuhan peserta.' }, { id: 'bromo-beginner', question: 'Apakah cocok untuk pemula?', answer: 'Cocok. Ritme perjalanan santai dan ada briefing serta pendampingan guide.' }, { id: 'bromo-gear', question: 'Apa yang perlu saya bawa?', answer: 'Bawa jaket hangat, sepatu nyaman, obat pribadi, identitas, dan botol minum.' }],
   },
   {
     id: 'ranu-kumbolo', title: 'Ranu Kumbolo Slow Hike', location: 'Semeru, Jawa Timur', province: 'Jawa Timur', type: 'Open Trip',
@@ -31,6 +33,7 @@ export const trips: Trip[] = [
     description: 'Pendakian santai untuk menikmati Ranu Kumbolo dengan ritme yang aman, pendampingan guide, dan briefing persiapan lengkap.',
     includes: ['Tenda dan perlengkapan camp', 'Porter logistik', 'Guide', 'Makan 5x', 'P3K dan safety kit'],
     itinerary: ['Hari 1 · Briefing, perjalanan ke Ranu Pani, bermalam', 'Hari 2 · Trek ke Ranu Kumbolo, camp dan menikmati sunset', 'Hari 3 · Sunrise, turun, evaluasi, kembali ke Malang'],
+    faqs: [{ id: 'ranu-permit', question: 'Apakah izin pendakian sudah termasuk?', answer: 'Administrasi kawasan dan kebutuhan izin dibantu sesuai ketentuan yang berlaku pada tanggal perjalanan.' }, { id: 'ranu-fitness', question: 'Seberapa berat treknya?', answer: 'Levelnya menengah. Kamu perlu cukup fit untuk berjalan beberapa jam dengan daypack.' }, { id: 'ranu-weather', question: 'Bagaimana jika cuaca berubah?', answer: 'Guide akan menyesuaikan itinerary berdasarkan kondisi lapangan dan prioritas keselamatan.' }],
   },
   {
     id: 'ijen-private', title: 'Ijen Private Dawn', location: 'Kawah Ijen, Banyuwangi', province: 'Jawa Timur', type: 'Private Trip',
@@ -38,6 +41,7 @@ export const trips: Trip[] = [
     description: 'Rancang perjalanan privat untuk keluarga atau teman dekat menuju blue fire dan panorama Kawah Ijen bersama local guide.',
     includes: ['Mobil private', 'Guide lokal', 'Tiket destinasi', 'Air mineral', 'Dokumentasi'],
     itinerary: ['Malam · Penjemputan dan perjalanan ke Paltuding', 'Dini hari · Trek, sunrise, sarapan lokal, kembali'],
+    faqs: [{ id: 'ijen-private-date', question: 'Bisakah memilih tanggal sendiri?', answer: 'Bisa, karena paket ini private. Admin akan mengecek ketersediaan guide dan kendaraan.' }, { id: 'ijen-group', question: 'Berapa jumlah peserta ideal?', answer: 'Paket ini nyaman untuk keluarga atau grup kecil sampai kapasitas yang tercantum.' }, { id: 'ijen-pickup', question: 'Apakah tersedia penjemputan?', answer: 'Penjemputan dapat dirancang dalam itinerary private dan dikonfirmasi bersama admin.' }],
   },
   {
     id: 'b29-weekend', title: 'B29 Weekend Camp', location: 'B29, Lumajang', province: 'Jawa Timur', type: 'Open Trip',
@@ -45,6 +49,7 @@ export const trips: Trip[] = [
     description: 'Camping ringan dengan pemandangan negeri di atas awan, cocok untuk first-timer yang ingin mencoba suasana alam tanpa terburu-buru.',
     includes: ['Tenda sharing', 'Transport lokal', 'Makan 3x', 'Guide', 'Tiket kawasan'],
     itinerary: ['Hari 1 · Berangkat, trekking pendek, camp dan api unggun', 'Hari 2 · Sunrise, sarapan, foto grup, kembali'],
+    faqs: [{ id: 'b29-camp', question: 'Apakah perlengkapan camping tersedia?', answer: 'Tenda sharing dan perlengkapan dasar camp termasuk dalam paket.' }, { id: 'b29-firsttimer', question: 'Apakah ramah first-timer?', answer: 'Ya. Trek relatif ringan dengan pendampingan guide dan briefing sebelum kegiatan.' }, { id: 'b29-family', question: 'Apakah bisa untuk keluarga?', answer: 'Bisa untuk keluarga yang nyaman dengan aktivitas outdoor ringan dan camping.' }],
   },
 ];
 
@@ -75,6 +80,8 @@ export const rules = [
 ];
 
 export const formatIDR = (value: number) => `Rp ${value.toLocaleString('id-ID')}`;
+export const buildBookingWhatsAppMessage = ({ tripName, date, participants }: { tripName: string; date: string; participants: number }) => `Halo Or.Trip Adventure, saya ingin booking ${tripName}.\nTanggal: ${date}\nJumlah peserta: ${participants}`;
+export const isBookingConsentComplete = (privacyAccepted: boolean, termsAccepted: boolean) => privacyAccepted && termsAccepted;
 export const getTrip = (id?: string) => trips.find((trip) => trip.id === id) ?? trips[0];
 
 

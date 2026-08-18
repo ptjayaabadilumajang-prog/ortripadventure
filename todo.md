@@ -33,3 +33,9 @@
 - [x] Add WhatsApp booking CTA to the Home hero and every trip detail page.
 - [x] Add a sticky floating WhatsApp button across all app pages.
 - [x] Validate legal navigation and WhatsApp actions on mobile portrait layouts.
+
+- [x] Create a reusable Or.Trip Adventure implementation skill with workflow, templates, and validation guidance.
+- [x] Add dynamic FAQ data and accordion sections to trip detail pages.
+- [x] Add mandatory Privacy Policy and Booking Terms consent before booking can continue.
+- [x] Generate WhatsApp booking messages containing trip name, date, and participant count.
+- [x] Validate the new booking flow and skill package, then save a checkpoint.
