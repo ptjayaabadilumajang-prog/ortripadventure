@@ -22,3 +22,7 @@
 - [x] Run type checks, lint, and tests.
 - [x] Verify important screens at mobile portrait viewport and fix visible issues.
 - [x] Save the final project checkpoint and provide the project version to the user.
+
+- [x] Replace demo contact points with the official admin WhatsApp numbers, email, social links, website, and supplied logo.
+- [x] Add an official contact/support section and wire contact actions to the correct destinations.
+- [x] Validate the updated contact and brand data across the app and save a new checkpoint.

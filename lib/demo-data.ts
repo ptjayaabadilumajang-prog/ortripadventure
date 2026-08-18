@@ -76,3 +76,18 @@ export const rules = [
 
 export const formatIDR = (value: number) => `Rp ${value.toLocaleString('id-ID')}`;
 export const getTrip = (id?: string) => trips.find((trip) => trip.id === id) ?? trips[0];
+
+
+export const officialContacts = {
+  company: 'PT Jaya Abadi Lumajang',
+  email: 'ptjayaabadilumajang@gmail.com',
+  admins: [
+    { label: 'Admin 1', phone: '085856602819' },
+    { label: 'Admin 2', phone: '085927214806' },
+    { label: 'Admin 3', phone: '0895325521587' },
+  ],
+  whatsapp: '6285856602819',
+  instagram: 'https://www.instagram.com/or__trip?igsh=MXEycGd2dWdsN3VvbQ==',
+  tiktok: 'https://www.tiktok.com/@openrekantripadventure?_r=1&_t=ZS-98yTMWyamub',
+  website: 'https://ortrip-adventure.base44.app',
+};

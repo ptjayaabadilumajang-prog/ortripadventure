@@ -32,7 +32,7 @@ const env = {
   appSlug: "ortrip-adventure",
   // S3 URL of the app logo - set this to the URL returned by generate_image when creating custom logo
   // Leave empty to use the default icon from assets/images/icon.png
-  logoUrl: "/manus-storage/ortrip-adventure-icon_cdcb7a31.png",
+  logoUrl: "",
   scheme: schemeFromBundleId,
   iosBundleId: bundleId,
   androidPackage: bundleId,
