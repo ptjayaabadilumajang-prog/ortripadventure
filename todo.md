@@ -59,3 +59,8 @@
 - [x] Add customer-visible validation status refresh on the booking confirmation page.
 - [x] Add automatic WhatsApp notification support with a click-to-chat fallback.
 - [x] Add configuration documentation for WhatsApp Cloud API credentials and validate the new flows.
+
+- [x] Read the Expo Maps documentation and choose the cross-platform map implementation.
+- [x] Add typed Ranu Kumbolo route coordinates, markers, and route summary data.
+- [x] Add an interactive map section to the trip detail page with selectable route points.
+- [ ] Validate map interaction and mobile layout, then save a checkpoint.

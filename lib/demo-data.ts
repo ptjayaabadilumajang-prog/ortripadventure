@@ -61,6 +61,12 @@ export const ranuPackages = [
 ];
 export const ranuFacilities = ['SIMAKSI', 'Tour Leader', 'PPGST', 'Welcome Drink', 'Tenda', 'Alat Masak', 'Snack Camp', 'Minuman Isotonik', 'P3K', 'Porter', 'Kursi', 'Meja', 'Sop Buah', 'HT', 'Bantal Tidur', 'Tisu dalam Tenda', 'Kantong Sampah', 'SIMAKSI Ranu Regulo', 'Asuransi', 'Porter Masak', 'Materai', 'Dokumentasi Foto & Video', 'Souvenir'];
 export const ranuMeals = ['Breakfast', 'Makan Siang', 'Makan Malam'];
+export const ranuRoute = [
+  { id: 'ranu-pani', label: 'Meeting Point Ranu Pani', shortLabel: 'Start', description: 'Registrasi, pengecekan SIMAKSI, dan persiapan trekking.', coordinate: { latitude: -8.0211, longitude: 112.9173 } },
+  { id: 'landengan-dowo', label: 'Pos 1 · Landengan Dowo', shortLabel: 'Pos 1', description: 'Titik istirahat awal di jalur menuju Ranu Kumbolo.', coordinate: { latitude: -8.0173, longitude: 112.9125 } },
+  { id: 'watu-rejeng', label: 'Pos 2 · Watu Rejeng', shortLabel: 'Pos 2', description: 'Area rehat dengan kontur jalur yang mulai menanjak.', coordinate: { latitude: -8.0119, longitude: 112.9074 } },
+  { id: 'ranu-kumbolo', label: 'Ranu Kumbolo Lake', shortLabel: 'Finish', description: 'Tujuan utama: camping, sunset, dan sunrise di tepi danau.', coordinate: { latitude: -8.0059, longitude: 112.9229 } },
+];
 export const ranuTimeline = [
   { day: 'Hari Pertama', items: ['Meeting point', 'Registrasi', 'Menuju Ranu Pani', 'Check SIMAKSI', 'Trekking', 'Sampai Ranu Kumbolo', 'Camping', 'Snack camp', 'Dinner', 'Sharing free time'] },
   { day: 'Hari Kedua', items: ['Sunrise', 'Breakfast', 'Foto', 'Makan siang', 'Packing', 'Turun', 'Finish'] },

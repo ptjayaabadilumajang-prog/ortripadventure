@@ -7,6 +7,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PrimaryButton, SectionHeader } from '@/components/trip-ui';
 import { buildBookingWhatsAppMessage, formatIDR, gallery, getRanuPackage, getTrip, guides, ranuFacilities, ranuMeals, ranuPackages, ranuTimeline, testimonials } from '@/lib/demo-data';
 import { openWhatsApp } from '@/components/whatsapp-fab';
+import { RanuRouteMap } from '@/components/ranu-route-map';
 
 export default function TripDetailScreen() {
   const { id, package: packageId } = useLocalSearchParams<{ id: string; package?: string }>();
@@ -57,6 +58,7 @@ function RanuContent({ selectedPackageId, setSelectedPackageId, expandedFaq, set
     <View className="mt-6"><SectionHeader title="Makan selama perjalanan" action="" /><View className="flex-row justify-between">{ranuMeals.map((meal) => <View key={meal} className="w-[31%] rounded-2xl bg-surface p-3"><Text className="font-body text-xs font-extrabold text-primary">{meal === 'Breakfast' ? '🍳' : meal === 'Makan Siang' ? '🍛' : '🍲'}</Text><Text className="mt-2 font-body text-xs font-bold text-foreground">{meal}</Text></View>)}</View></View>
     <View className="mt-7"><SectionHeader title="Kenapa pilih Or.Trip?" action="" /><View className="flex-row flex-wrap"><Benefit icon="person.fill" title="Professional Guide" body="Berpengalaman lebih dari 10 tahun" /><Benefit icon="bag.fill" title="Peralatan Lengkap" body="Peralatan camping berkualitas" /><Benefit icon="shield.fill" title="Fasilitas Premium" body="Nyaman dan aman" /><Benefit icon="checkmark.seal.fill" title="Legal & Asuransi" body="SIMAKSI resmi dan peserta terlindungi" /></View></View>
     <View className="mt-7"><SectionHeader title="Timeline trip" action="" />{ranuTimeline.map((group) => <View key={group.day} className="mb-5"><Text className="font-heading text-lg font-bold text-primary">{group.day}</Text>{group.items.map((item, index) => <View key={item} className="flex-row"><View className="w-7 items-center"><View className="mt-2 h-3 w-3 rounded-full bg-primary" />{index < group.items.length - 1 && <View className="h-7 w-px bg-[#A3C9A8]" />}</View><Text className="flex-1 py-1.5 font-body text-sm text-muted">{item}</Text></View>)}</View>)}</View>
+    <RanuRouteMap />
     <GalleryPreview onOpen={setLightboxImage} />
     <TestimonialPreview />
     <FaqSection trip={trip} expandedFaq={expandedFaq} setExpandedFaq={setExpandedFaq} />
