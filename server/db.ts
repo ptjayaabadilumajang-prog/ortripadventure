@@ -369,3 +369,22 @@ export async function getAdminUserIds() {
   return result.map(r => r.id);
 }
 
+/**
+ * Legal Document Management
+ */
+export async function addLegalDocument(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { legalDocuments } = require("../drizzle/schema");
+  const result = await db.insert(legalDocuments).values(data);
+  return result[0].insertId;
+}
+
+export async function listLegalDocuments() {
+  const db = await getDb();
+  if (!db) return [];
+  const { legalDocuments } = require("../drizzle/schema");
+  const { desc } = require("drizzle-orm");
+  return db.select().from(legalDocuments).orderBy(desc(legalDocuments.createdAt));
+}
+

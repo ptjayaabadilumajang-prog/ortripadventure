@@ -334,6 +334,22 @@ export const appRouter = router({
       return sendPushNotification(ctx.user.id, input.title, input.body);
     }),
   }),
+  legal: router({
+    add: protectedProcedure.input(z.object({
+      name: z.string(),
+      type: z.string(),
+      documentNumber: z.string().optional(),
+      fileUrl: z.string(),
+      metadata: z.any().optional(),
+    })).mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== "admin") throw new Error("Admin access required");
+      return db.addLegalDocument(input);
+    }),
+    list: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") throw new Error("Admin access required");
+      return db.listLegalDocuments();
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

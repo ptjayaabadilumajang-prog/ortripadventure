@@ -51,7 +51,7 @@
 - [x] Add a Ranu Kumbolo photo gallery with selectable full-screen lightbox viewing.
 - [x] Add payment-proof file selection and upload state to the booking confirmation flow.
 - [x] Add a secure server-side booking submission path for Google Sheets recording.
-- [ ] Configure and validate the target Google Sheet connection and required permissions.
+- [x] Configure and validate the target Google Sheet connection and required permissions.
 - [x] Test gallery, upload validation, booking submission, and Sheets error states before checkpointing.
 
 - [x] Add a user-facing setup guide for creating and deploying the Google Apps Script Web App URL.
@@ -84,3 +84,6 @@
 - [x] Implement departure quota checking and overbooking prevention with database transactions.
 - [x] Add waitlist logic when trip quota is full.
 - [x] Build Admin Schedule Management tab to monitor seat availability.
+- [x] Securely upload and attach four legal company documents to the admin-only area.
+- [x] Implement legal metadata storage and verification status in the database.
+- [x] Add a protected Legal Documents section to the Admin Settings tab.

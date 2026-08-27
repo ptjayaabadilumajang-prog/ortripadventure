@@ -18,6 +18,7 @@ export default function AdminDashboardScreen() {
   const [activeTab, setActiveTab] = useState<'finance' | 'leads' | 'trips' | 'schedules' | 'settings'>('finance');
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
   const [showNotificationTest, setShowNotificationTest] = useState(false);
+  const [showLegalDocs, setShowLegalDocs] = useState(false);
   const [testTitle, setTestTitle] = useState('Tes Notifikasi');
   const [testBody, setTestBody] = useState('Halo admin, ini adalah notifikasi percobaan.');
   
@@ -26,6 +27,7 @@ export default function AdminDashboardScreen() {
   const leadsQuery = trpc.crm.listLeads.useQuery(undefined, { enabled: !!user && activeTab === 'leads' });
   const tripsQuery = trpc.trips.list.useQuery(undefined, { enabled: !!user && activeTab === 'trips' });
   const leadDetailsQuery = trpc.crm.getLeadDetails.useQuery({ id: selectedLeadId! }, { enabled: !!user && !!selectedLeadId });
+  const legalDocsQuery = trpc.legal.list.useQuery(undefined, { enabled: !!user && (activeTab === 'settings' || showLegalDocs) });
 
   const updateStatus = trpc.booking.updateStatus.useMutation({
     onSuccess: () => {
@@ -221,10 +223,64 @@ export default function AdminDashboardScreen() {
                 description="Kirim notifikasi tes dan kelola push tokens." 
                 onPress={() => setShowNotificationTest(true)}
               />
+              <ConfigItem 
+                title="Legal Documents" 
+                description="Arsip dokumen perusahaan (NIB, NPWP, Sertifikat)." 
+                onPress={() => setShowLegalDocs(true)}
+              />
             </View>
           </View>
         )}
       </ScrollView>
+
+      <Modal visible={showLegalDocs} transparent animationType="slide">
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-background rounded-t-[32px] p-6 h-[80%]">
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="font-heading text-2xl font-bold text-foreground">Dokumen Legal</Text>
+              <Pressable onPress={() => setShowLegalDocs(false)} className="h-10 w-10 items-center justify-center rounded-full bg-surface">
+                <IconSymbol name="xmark" size={20} color="#1A251B" />
+              </Pressable>
+            </View>
+            
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {legalDocsQuery.isLoading ? (
+                <Text className="font-body text-muted">Memuat dokumen...</Text>
+              ) : (legalDocsQuery.data ?? []).map((doc: any) => (
+                <View key={doc.id} className="mb-4 rounded-2xl border border-border bg-surface p-4">
+                  <View className="flex-row justify-between items-start">
+                    <View className="flex-1">
+                      <Text className="font-heading text-base font-bold text-foreground">{doc.name}</Text>
+                      <Text className="font-body text-xs text-muted">No: {doc.documentNumber || '-'}</Text>
+                      <Text className="mt-1 font-body text-[10px] text-primary font-bold uppercase">{doc.type}</Text>
+                    </View>
+                    <View className={`rounded-full px-2 py-1 ${doc.isVerified ? 'bg-success/10' : 'bg-warning/10'}`}>
+                      <Text className={`font-body text-[10px] font-bold ${doc.isVerified ? 'text-success' : 'text-warning'}`}>
+                        {doc.isVerified ? 'VERIFIED' : 'PENDING'}
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <View className="mt-4 flex-row gap-2">
+                    <Pressable 
+                      onPress={() => Linking.openURL(doc.fileUrl)}
+                      className="flex-1 rounded-xl bg-primary py-2.5 items-center justify-center"
+                    >
+                      <Text className="font-body text-xs font-bold text-white">Lihat PDF</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ))}
+              
+              <View className="mt-4 rounded-2xl bg-neutral p-4 border border-border border-dashed">
+                <Text className="font-body text-[10px] text-muted leading-4 text-center">
+                  Dokumen ini bersifat rahasia dan hanya untuk keperluan administrasi Or.Trip Adventure. Dilarang menyebarluaskan tanpa izin superadmin.
+                </Text>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       <Modal visible={showNotificationTest} transparent animationType="slide">
         <View className="flex-1 bg-black/50 justify-end">

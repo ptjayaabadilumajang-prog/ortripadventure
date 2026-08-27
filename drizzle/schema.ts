@@ -326,6 +326,19 @@ export const auditLogs = mysqlTable("audit_logs", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const legalDocuments = mysqlTable("legal_documents", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  type: varchar("type", { length: 64 }).notNull(), // TIN, NIB, PERNYATAAN, SERTIFIKAT
+  documentNumber: varchar("documentNumber", { length: 255 }),
+  fileUrl: text("fileUrl").notNull(),
+  metadata: json("metadata"),
+  isVerified: boolean("isVerified").default(false).notNull(),
+  verifiedAt: timestamp("verifiedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type AppSetting = typeof appSettings.$inferSelect;
@@ -339,6 +352,8 @@ export type Message = typeof messages.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type Destination = typeof destinations.$inferSelect;
+export type LegalDocument = typeof legalDocuments.$inferSelect;
+export type InsertLegalDocument = typeof legalDocuments.$inferInsert;
 
 /**
  * Push Notifications
