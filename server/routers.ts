@@ -178,6 +178,17 @@ export const appRouter = router({
       const message = buildAdminWhatsAppMessage({ ...input, status: waitlisted ? "pending" : "under_review" });
       const notification = await notifyWhatsApp(message);
       
+      // Notify admins via Push
+      try {
+        const { sendPushNotification } = require("./push");
+        const adminIds = await db.getAdminUserIds();
+        for (const adminId of adminIds) {
+          await sendPushNotification(adminId, waitlisted ? "Waitlist Baru!" : "Booking Baru!", `${input.customerName} memesan ${input.tripName}.`);
+        }
+      } catch (e) {
+        console.error("Failed to send admin push notification:", e);
+      }
+      
       const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
       if (!webhookUrl || !/^https:\/\//.test(webhookUrl) || !webhookUrl.endsWith("/exec")) {
         return { success: true, configured: false, status: "under_review", whatsappUrl: notification.fallbackUrl, whatsappSent: notification.sent, message: "Booking tersimpan di DB; Google Sheets belum terhubung." } as const;
@@ -230,6 +241,24 @@ export const appRouter = router({
         date: departure?.startDate.toLocaleDateString() || "",
       });
       const notification = await notifyWhatsApp(message); 
+      
+      // Notify user via Push
+      if (lead?.userId) {
+        try {
+          const { sendPushNotification } = require("./push");
+          const statusLabels: Record<string, string> = {
+            approved: "Disetujui ✅",
+            rejected: "Ditolak ❌",
+            cancelled: "Dibatalkan ⚠️",
+            refunded: "Refund Selesai 💰",
+            under_review: "Sedang Ditinjau 🔍",
+          };
+          await sendPushNotification(lead.userId, "Update Status Booking", `Booking ${booking.bookingCode} Anda sekarang berstatus ${statusLabels[input.status] || input.status}.`);
+        } catch (e) {
+          console.error("Failed to send user push notification:", e);
+        }
+      }
+
       return { success: true, status: input.status, whatsappUrl: notification.fallbackUrl, whatsappSent: notification.sent } as const; 
     }),
     list: protectedProcedure.query(async ({ ctx }) => {
@@ -281,6 +310,28 @@ export const appRouter = router({
       }
       
       return { answer };
+    }),
+  }),
+  notifications: router({
+    registerToken: publicProcedure.input(z.object({
+      token: z.string(),
+      platform: z.enum(["ios", "android", "web"]),
+      deviceInfo: z.any().optional(),
+    })).mutation(async ({ ctx, input }) => {
+      return db.registerPushToken({
+        userId: ctx.user?.id,
+        token: input.token,
+        platform: input.platform,
+        deviceInfo: input.deviceInfo,
+      });
+    }),
+    test: protectedProcedure.input(z.object({
+      title: z.string(),
+      body: z.string(),
+    })).mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== "admin") throw new Error("Admin access required");
+      const { sendPushNotification } = require("./push");
+      return sendPushNotification(ctx.user.id, input.title, input.body);
     }),
   }),
 });

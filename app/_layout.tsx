@@ -1,8 +1,11 @@
 import "@/global.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
+import Constants from "expo-constants";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { Platform } from "react-native";
@@ -27,6 +30,56 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
+async function registerForPushNotificationsAsync() {
+  let token;
+
+  if (Platform.OS === "android") {
+    await Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#2D5A27",
+    });
+  }
+
+  if (Device.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== "granted") {
+      console.warn("Failed to get push token for push notification!");
+      return;
+    }
+    
+    try {
+      const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+      if (!projectId) {
+        throw new Error("Project ID not found");
+      }
+      token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+    } catch (e) {
+      console.error("Error getting push token:", e);
+    }
+  } else {
+    console.warn("Must use physical device for Push Notifications");
+  }
+
+  return token;
+}
+
 export default function RootLayout() {
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
   const initialFrame = initialWindowMetrics?.frame ?? DEFAULT_WEB_FRAME;
@@ -49,6 +102,41 @@ export default function RootLayout() {
     const unsubscribe = subscribeSafeAreaInsets(handleSafeAreaUpdate);
     return () => unsubscribe();
   }, [handleSafeAreaUpdate]);
+
+  // Handle push notifications
+  const registerTokenMutation = trpc.notifications.registerToken.useMutation();
+  
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(token => {
+      if (token) {
+        registerTokenMutation.mutate({
+          token,
+          platform: Platform.OS as any,
+          deviceInfo: {
+            brand: Device.brand,
+            modelName: Device.modelName,
+            osVersion: Device.osVersion,
+          },
+        });
+      }
+    });
+
+    const notificationListener = Notifications.addNotificationReceivedListener(notification => {
+      console.log("Notification received:", notification);
+    });
+
+    const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+      const url = response.notification.request.content.data?.url;
+      if (typeof url === "string") {
+        router.push(url as any);
+      }
+    });
+
+    return () => {
+      notificationListener.remove();
+      responseListener.remove();
+    };
+  }, []);
 
   // Create clients once and reuse them
   const [queryClient] = useState(

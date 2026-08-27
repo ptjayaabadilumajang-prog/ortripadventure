@@ -120,7 +120,13 @@ const config: ExpoConfig = {
         },
       },
     ],
+    "expo-notifications",
   ],
+  extra: {
+    eas: {
+      projectId: "00000000-0000-0000-0000-000000000000", // Replace with real EAS Project ID
+    },
+  },
   experiments: {
     typedRoutes: true,
     reactCompiler: true,

@@ -339,3 +339,33 @@ export type Message = typeof messages.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type Destination = typeof destinations.$inferSelect;
+
+/**
+ * Push Notifications
+ */
+export const pushTokens = mysqlTable("push_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  token: varchar("token", { length: 255 }).notNull().unique(),
+  platform: mysqlEnum("platform", ["ios", "android", "web"]).notNull(),
+  deviceInfo: json("deviceInfo"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const pushNotifications = mysqlTable("push_notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  title: varchar("title", { length: 255 }).notNull(),
+  body: text("body").notNull(),
+  data: json("data"),
+  status: mysqlEnum("status", ["pending", "sent", "failed"]).default("pending").notNull(),
+  sentAt: timestamp("sentAt"),
+  error: text("error"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PushToken = typeof pushTokens.$inferSelect;
+export type InsertPushToken = typeof pushTokens.$inferInsert;
+export type PushNotification = typeof pushNotifications.$inferSelect;
+export type InsertPushNotification = typeof pushNotifications.$inferInsert;

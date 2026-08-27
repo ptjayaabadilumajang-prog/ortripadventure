@@ -17,6 +17,9 @@ export default function AdminDashboardScreen() {
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState<'finance' | 'leads' | 'trips' | 'schedules' | 'settings'>('finance');
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
+  const [showNotificationTest, setShowNotificationTest] = useState(false);
+  const [testTitle, setTestTitle] = useState('Tes Notifikasi');
+  const [testBody, setTestBody] = useState('Halo admin, ini adalah notifikasi percobaan.');
   
   const statsQuery = trpc.booking.getStats.useQuery(undefined, { enabled: !!user });
   const listQuery = trpc.booking.list.useQuery(undefined, { enabled: !!user });
@@ -30,6 +33,8 @@ export default function AdminDashboardScreen() {
       listQuery.refetch();
     }
   });
+
+  const sendTestMutation = trpc.notifications.test.useMutation();
 
   async function update() {
     if (!bookingCode.trim()) { setMessage('Masukkan kode booking.'); return; }
@@ -211,10 +216,64 @@ export default function AdminDashboardScreen() {
               <ConfigItem title="Pricing & Packages" description="Kelola harga dasar dan paket meeting point." />
               <ConfigItem title="Lead Scoring Rules" description="Atur bobot poin untuk aktivitas chatbot dan form." />
               <ConfigItem title="Google Sheets Integration" description="Konfigurasi URL webhook Apps Script." />
+              <ConfigItem 
+                title="Push Notifications" 
+                description="Kirim notifikasi tes dan kelola push tokens." 
+                onPress={() => setShowNotificationTest(true)}
+              />
             </View>
           </View>
         )}
       </ScrollView>
+
+      <Modal visible={showNotificationTest} transparent animationType="slide">
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-background rounded-t-[32px] p-6 h-[60%]">
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="font-heading text-2xl font-bold text-foreground">Test Notifikasi</Text>
+              <Pressable onPress={() => setShowNotificationTest(false)} className="h-10 w-10 items-center justify-center rounded-full bg-surface">
+                <IconSymbol name="xmark" size={20} color="#1A251B" />
+              </Pressable>
+            </View>
+            
+            <TextInput 
+              value={testTitle} 
+              onChangeText={setTestTitle} 
+              placeholder="Judul Notifikasi" 
+              placeholderTextColor="#879287" 
+              className="rounded-2xl border border-border bg-background px-4 py-3.5 font-body text-sm text-foreground" 
+            />
+            
+            <TextInput 
+              value={testBody} 
+              onChangeText={setTestBody} 
+              placeholder="Isi Notifikasi" 
+              placeholderTextColor="#879287" 
+              multiline
+              className="mt-4 h-24 rounded-2xl border border-border bg-background px-4 py-3.5 font-body text-sm text-foreground" 
+            />
+
+            <View className="mt-6">
+              <PrimaryButton 
+                label={sendTestMutation.isPending ? 'Mengirim...' : 'Kirim ke Saya'} 
+                disabled={sendTestMutation.isPending} 
+                onPress={async () => {
+                  try {
+                    await sendTestMutation.mutateAsync({ title: testTitle, body: testBody });
+                    alert('Notifikasi terkirim!');
+                  } catch (e) {
+                    alert('Gagal mengirim: ' + (e instanceof Error ? e.message : String(e)));
+                  }
+                }} 
+              />
+            </View>
+            
+            <Text className="mt-4 font-body text-[10px] text-muted text-center">
+              Catatan: Pastikan Anda memberikan izin notifikasi pada perangkat fisik untuk menerima pesan ini.
+            </Text>
+          </View>
+        </View>
+      </Modal>
 
       <Modal visible={Boolean(selectedLeadId)} transparent animationType="slide">
         <View className="flex-1 bg-black/50 justify-end">
@@ -324,9 +383,9 @@ function TripScheduleSection({ trip }: { trip: any }) {
   );
 }
 
-function ConfigItem({ title, description }: { title: string; description: string }) {
+function ConfigItem({ title, description, onPress }: { title: string; description: string; onPress?: () => void }) {
   return (
-    <Pressable className="rounded-2xl border border-border bg-surface p-4 flex-row items-center active:opacity-70">
+    <Pressable onPress={onPress} className="rounded-2xl border border-border bg-surface p-4 flex-row items-center active:opacity-70">
       <View className="flex-1">
         <Text className="font-heading text-base font-bold text-foreground">{title}</Text>
         <Text className="mt-1 font-body text-xs text-muted">{description}</Text>

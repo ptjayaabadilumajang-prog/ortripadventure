@@ -317,3 +317,55 @@ export async function getBookingByCode(bookingCode: string) {
   return result.length > 0 ? result[0] : null;
 }
 
+/**
+ * Push Notification Management
+ */
+export async function registerPushToken(data: { userId?: number; token: string; platform: "ios" | "android" | "web"; deviceInfo?: any }) {
+  const db = await getDb();
+  if (!db) return;
+  const { pushTokens } = require("../drizzle/schema");
+  await db.insert(pushTokens).values({
+    ...data,
+    updatedAt: new Date(),
+  }).onDuplicateKeyUpdate({
+    set: {
+      userId: data.userId ?? null,
+      platform: data.platform,
+      deviceInfo: data.deviceInfo ?? null,
+      updatedAt: new Date(),
+    }
+  });
+}
+
+export async function logPushNotification(data: { userId?: number; title: string; body: string; data?: any; status?: "pending" | "sent" | "failed"; error?: string }) {
+  const db = await getDb();
+  if (!db) return;
+  const { pushNotifications } = require("../drizzle/schema");
+  const result = await db.insert(pushNotifications).values({
+    ...data,
+    sentAt: data.status === "sent" ? new Date() : null,
+  });
+  return result[0].insertId;
+}
+
+export async function getPushTokensByUser(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const { pushTokens } = require("../drizzle/schema");
+  return db.select().from(pushTokens).where(eq(pushTokens.userId, userId));
+}
+
+export async function getAllPushTokens() {
+  const db = await getDb();
+  if (!db) return [];
+  const { pushTokens } = require("../drizzle/schema");
+  return db.select().from(pushTokens);
+}
+
+export async function getAdminUserIds() {
+  const db = await getDb();
+  if (!db) return [];
+  const result = await db.select({ id: users.id }).from(users).where(eq(users.role, "admin"));
+  return result.map(r => r.id);
+}
+
