@@ -51,6 +51,23 @@ export const appRouter = router({
     }),
     getStatus: publicProcedure.input(z.object({ bookingCode: z.string().min(4).max(40) })).query(({ input }) => { const booking = bookingStore.get(input.bookingCode); return booking ? { status: booking.status, updatedAt: booking.submittedAt } : { status: "pending" as const, updatedAt: null }; }),
     updateStatus: protectedProcedure.input(z.object({ bookingCode: z.string().min(4).max(40), status: z.enum(["pending", "under_review", "approved", "rejected"]) })).mutation(async ({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); const booking = bookingStore.get(input.bookingCode); if (!booking) throw new Error("Booking tidak ditemukan pada sesi server ini"); booking.status = input.status; const message = buildAdminWhatsAppMessage({ ...booking, status: input.status }); const notification = await notifyWhatsApp(message); return { success: true, status: input.status, whatsappUrl: notification.fallbackUrl, whatsappSent: notification.sent } as const; }),
+    list: protectedProcedure.query(({ ctx }) => {
+      if (ctx.user.role !== "admin") throw new Error("Admin access required");
+      return Array.from(bookingStore.values()).sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    }),
+    getStats: protectedProcedure.query(({ ctx }) => {
+      if (ctx.user.role !== "admin") throw new Error("Admin access required");
+      const bookings = Array.from(bookingStore.values());
+      const totalRevenue = bookings.filter(b => b.status === "approved").reduce((sum, b) => sum + b.total, 0);
+      const pendingRevenue = bookings.filter(b => b.status === "under_review").reduce((sum, b) => sum + b.total, 0);
+      return {
+        totalBookings: bookings.length,
+        approvedBookings: bookings.filter(b => b.status === "approved").length,
+        pendingBookings: bookings.filter(b => b.status === "under_review").length,
+        totalRevenue,
+        pendingRevenue,
+      };
+    }),
   }),
 });
 

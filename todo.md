@@ -70,3 +70,8 @@
 - [x] Add 'Buka di Google Maps' buttons for start and end locations.
 - [x] Display distance, elevation, and duration for each route segment.
 - [x] Validate enhanced map features and save a checkpoint.
+
+- [ ] Implement a dynamic date picker for user-selected departure schedules in the booking flow.
+- [ ] Audit the financial dashboard (admin) to ensure all revenue and expense tracking functions correctly.
+- [ ] Preview the entire app flow and perform regression testing on core features.
+- [ ] Validate the final financial dashboard and save a checkpoint.

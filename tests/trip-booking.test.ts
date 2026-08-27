@@ -26,6 +26,13 @@ describe('Or.Trip demo booking logic', () => {
 
   it('builds a WhatsApp message with the selected trip details', () => {
     expect(buildBookingWhatsAppMessage({ tripName: 'Bromo Sunrise Escape', date: '14–15 Sep 2026', participants: 3 })).toContain('Bromo Sunrise Escape');
+    expect(buildBookingWhatsAppMessage({ tripName: 'Bromo Sunrise Escape', date: '14–15 Sep 2026', participants: 3 })).toContain('Tanggal: 14–15 Sep 2026');
     expect(buildBookingWhatsAppMessage({ tripName: 'Bromo Sunrise Escape', date: '14–15 Sep 2026', participants: 3 })).toContain('Jumlah peserta: 3');
+  });
+
+  it('handles custom dates in the WhatsApp message template', () => {
+    const customDate = '25 Des 2026';
+    const message = buildBookingWhatsAppMessage({ tripName: 'Ijen Private', date: customDate, participants: 2 });
+    expect(message).toContain(`Tanggal: ${customDate}`);
   });
 });
