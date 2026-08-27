@@ -62,10 +62,55 @@ export const ranuPackages = [
 export const ranuFacilities = ['SIMAKSI', 'Tour Leader', 'PPGST', 'Welcome Drink', 'Tenda', 'Alat Masak', 'Snack Camp', 'Minuman Isotonik', 'P3K', 'Porter', 'Kursi', 'Meja', 'Sop Buah', 'HT', 'Bantal Tidur', 'Tisu dalam Tenda', 'Kantong Sampah', 'SIMAKSI Ranu Regulo', 'Asuransi', 'Porter Masak', 'Materai', 'Dokumentasi Foto & Video', 'Souvenir'];
 export const ranuMeals = ['Breakfast', 'Makan Siang', 'Makan Malam'];
 export const ranuRoute = [
-  { id: 'ranu-pani', label: 'Meeting Point Ranu Pani', shortLabel: 'Start', description: 'Registrasi, pengecekan SIMAKSI, dan persiapan trekking.', coordinate: { latitude: -8.0211, longitude: 112.9173 } },
-  { id: 'landengan-dowo', label: 'Pos 1 · Landengan Dowo', shortLabel: 'Pos 1', description: 'Titik istirahat awal di jalur menuju Ranu Kumbolo.', coordinate: { latitude: -8.0173, longitude: 112.9125 } },
-  { id: 'watu-rejeng', label: 'Pos 2 · Watu Rejeng', shortLabel: 'Pos 2', description: 'Area rehat dengan kontur jalur yang mulai menanjak.', coordinate: { latitude: -8.0119, longitude: 112.9074 } },
-  { id: 'ranu-kumbolo', label: 'Ranu Kumbolo Lake', shortLabel: 'Finish', description: 'Tujuan utama: camping, sunset, dan sunrise di tepi danau.', coordinate: { latitude: -8.0059, longitude: 112.9229 } },
+  { 
+    id: 'ranu-pani', 
+    label: 'Meeting Point Ranu Pani', 
+    shortLabel: 'Start', 
+    description: 'Registrasi, pengecekan SIMAKSI, dan persiapan trekking.', 
+    coordinate: { latitude: -8.0211, longitude: 112.9173 },
+    images: [
+      'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80'
+    ],
+    mapsUrl: 'https://www.google.com/maps/search/?api=1&query=-8.0211,112.9173',
+    stats: null
+  },
+  { 
+    id: 'landengan-dowo', 
+    label: 'Pos 1 · Landengan Dowo', 
+    shortLabel: 'Pos 1', 
+    description: 'Titik istirahat awal di jalur menuju Ranu Kumbolo.', 
+    coordinate: { latitude: -8.0173, longitude: 112.9125 },
+    images: [
+      'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80'
+    ],
+    stats: { distance: '3.2 km', elevation: '+120m', duration: '60 min' }
+  },
+  { 
+    id: 'watu-rejeng', 
+    label: 'Pos 2 · Watu Rejeng', 
+    shortLabel: 'Pos 2', 
+    description: 'Area rehat dengan kontur jalur yang mulai menanjak.', 
+    coordinate: { latitude: -8.0119, longitude: 112.9074 },
+    images: [
+      'https://images.unsplash.com/photo-1464278533981-50106e6176b1?auto=format&fit=crop&w=600&q=80'
+    ],
+    stats: { distance: '2.8 km', elevation: '+95m', duration: '50 min' }
+  },
+  { 
+    id: 'ranu-kumbolo', 
+    label: 'Ranu Kumbolo Lake', 
+    shortLabel: 'Finish', 
+    description: 'Tujuan utama: camping, sunset, dan sunrise di tepi danau.', 
+    coordinate: { latitude: -8.0059, longitude: 112.9229 },
+    images: [
+      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1475483768296-6163e08872a1?auto=format&fit=crop&w=600&q=80'
+    ],
+    mapsUrl: 'https://www.google.com/maps/search/?api=1&query=-8.0059,112.9229',
+    stats: { distance: '4.5 km', elevation: '+110m', duration: '90 min' }
+  },
 ];
 export const ranuTimeline = [
   { day: 'Hari Pertama', items: ['Meeting point', 'Registrasi', 'Menuju Ranu Pani', 'Check SIMAKSI', 'Trekking', 'Sampai Ranu Kumbolo', 'Camping', 'Snack camp', 'Dinner', 'Sharing free time'] },

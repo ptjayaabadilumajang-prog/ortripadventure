@@ -63,4 +63,10 @@
 - [x] Read the Expo Maps documentation and choose the cross-platform map implementation.
 - [x] Add typed Ranu Kumbolo route coordinates, markers, and route summary data.
 - [x] Add an interactive map section to the trip detail page with selectable route points.
-- [ ] Validate map interaction and mobile layout, then save a checkpoint.
+- [x] Validate map interaction and mobile layout, then save a checkpoint.
+
+- [x] Update Ranu Kumbolo route data with images, segment stats, and navigation links.
+- [x] Add a mini photo gallery for each point on the interactive map.
+- [x] Add 'Buka di Google Maps' buttons for start and end locations.
+- [x] Display distance, elevation, and duration for each route segment.
+- [x] Validate enhanced map features and save a checkpoint.
