@@ -1,7 +1,7 @@
-import { sql } from "drizzle-orm";
-import { trips as demoTrips, ranuPackages, ranuFacilities, ranuMeals, ranuTimeline, officialContacts } from "../lib/demo-data";
+import { sql, eq } from "drizzle-orm";
+import { trips as demoTrips, ranuPackages, ranuFacilities, ranuMeals, ranuTimeline, officialContacts, testimonials as demoTestimonials } from "../lib/demo-data";
 import { getDb } from "./db";
-import { trips, appSettings, tripDepartures } from "../drizzle/schema";
+import { trips, appSettings, tripDepartures, destinations, testimonials } from "../drizzle/schema";
 
 async function seed() {
   const db = await getDb();
@@ -36,30 +36,54 @@ async function seed() {
     await db.insert(appSettings).values(s).onDuplicateKeyUpdate({ set: { value: s.value } });
   }
 
+  console.log("Seeding destinations...");
+  const uniqueLocations = Array.from(new Set(demoTrips.map(t => t.location)));
+  for (const loc of uniqueLocations) {
+    const name = loc.split(',')[0].trim();
+    const region = loc.split(',')[1]?.trim() || "Jawa Timur";
+    await db.insert(destinations).values({
+      name,
+      region,
+      rules: "Ikuti jalur resmi dan bawa turun sampah.",
+      safetyInfo: "Pastikan kondisi fisik prima sebelum mendaki."
+    }).onDuplicateKeyUpdate({ set: { region } });
+  }
+
   console.log("Seeding trips...");
   for (const trip of demoTrips) {
+    const locName = trip.location.split(',')[0].trim();
+    const [dest] = await db.select().from(destinations).where(eq(destinations.name, locName)).limit(1);
+    
     await db.insert(trips).values({
       slug: trip.id,
+      destinationId: dest?.id,
       title: trip.title,
-      location: trip.location,
       type: trip.type as any,
       description: trip.description,
       priceBase: trip.price.toString(),
+      itinerary: trip.itinerary,
+      facilities: trip.includes,
+      requirements: "Kondisi fisik sehat, membawa identitas diri.",
       isVerified: true,
     }).onDuplicateKeyUpdate({
       set: {
         title: trip.title,
-        location: trip.location,
+        destinationId: dest?.id,
         type: trip.type as any,
         description: trip.description,
         priceBase: trip.price.toString(),
+        itinerary: trip.itinerary,
+        facilities: trip.includes,
         isVerified: true,
       }
     });
 
-    const [tripRow] = await db.select().from(trips).where(sql`slug = ${trip.id}`).limit(1);
+    const [tripRow] = await db.select().from(trips).where(eq(trips.slug, trip.id)).limit(1);
     
     if (tripRow && trip.date !== "Custom date") {
+      // Clear old departures for clean seed
+      await db.delete(tripDepartures).where(eq(tripDepartures.tripId, tripRow.id));
+      
       await db.insert(tripDepartures).values({
         tripId: tripRow.id,
         startDate: new Date("2026-09-14T08:00:00Z"),
@@ -69,6 +93,16 @@ async function seed() {
         isVerified: true,
       });
     }
+  }
+
+  console.log("Seeding testimonials...");
+  for (const t of demoTestimonials) {
+    await db.insert(testimonials).values({
+      name: t.name,
+      role: t.city,
+      content: t.quote,
+      isFeatured: true
+    });
   }
 
   console.log("Seeding complete!");

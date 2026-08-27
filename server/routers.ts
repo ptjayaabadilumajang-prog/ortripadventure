@@ -4,8 +4,9 @@ import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { storagePut } from "./storage";
 import { ENV } from "./_core/env";
-import { buildAdminWhatsAppMessage, type BookingValidationStatus } from "../lib/booking-status";
+import { buildAdminWhatsAppMessage, type BookingValidationStatus, buildAdminWhatsAppMessage as buildAdminMessage } from "../lib/booking-status";
 import * as db from "./db";
+import { invokeLLM } from "./_core/llm";
 
 const bookingPayload = z.object({
   bookingCode: z.string().min(4).max(40),
@@ -53,8 +54,33 @@ export const appRouter = router({
     }),
   }),
   trips: router({
-    list: publicProcedure.query(() => db.listTrips()),
-    getBySlug: publicProcedure.input(z.object({ slug: z.string() })).query(({ input }) => db.getTripBySlug(input.slug)),
+    list: publicProcedure.query(async () => {
+      const d = await db.getDb();
+      if (!d) return [];
+      const { trips, destinations } = require("../drizzle/schema");
+      const { eq } = require("drizzle-orm");
+      return d.select({
+        trip: trips,
+        destination: destinations,
+      })
+      .from(trips)
+      .leftJoin(destinations, eq(trips.destinationId, destinations.id));
+    }),
+    getBySlug: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ input }) => {
+      const d = await db.getDb();
+      if (!d) return null;
+      const { trips, destinations } = require("../drizzle/schema");
+      const { eq } = require("drizzle-orm");
+      const result = await d.select({
+        trip: trips,
+        destination: destinations,
+      })
+      .from(trips)
+      .leftJoin(destinations, eq(trips.destinationId, destinations.id))
+      .where(eq(trips.slug, input.slug))
+      .limit(1);
+      return result[0] || null;
+    }),
     update: protectedProcedure.input(z.object({ 
       id: z.number(), 
       title: z.string().optional(),
@@ -79,13 +105,28 @@ export const appRouter = router({
       status: z.string().optional(),
       score: z.number().optional(),
     })).mutation(({ input }) => db.createLead(input)),
-    updateScore: publicProcedure.input(z.object({ id: z.number(), score: z.number() })).mutation(({ input }) => db.updateLeadScore(input.id, input.score)),
+    logActivity: publicProcedure.input(z.object({
+      leadId: z.number(),
+      action: z.string(),
+      metadata: z.any().optional(),
+      scoreAdded: z.number().optional(),
+    })).mutation(({ input }) => db.logLeadActivity(input.leadId, input.action, input.metadata, input.scoreAdded)),
     listLeads: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role !== "admin") throw new Error("Admin access required");
       const d = await db.getDb();
       if (!d) return [];
       // @ts-ignore
-      return d.select().from(require("../drizzle/schema").leads).orderBy(require("drizzle-orm").desc(require("../drizzle/schema").leads.lastActivity));
+      return d.select().from(require("../drizzle/schema").leads).orderBy(require("drizzle-orm").desc(require("../drizzle/schema").leads.score));
+    }),
+    getLeadDetails: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ ctx, input }) => {
+      if (ctx.user.role !== "admin") throw new Error("Admin access required");
+      const d = await db.getDb();
+      if (!d) return null;
+      const { leads } = require("../drizzle/schema");
+      const { eq } = require("drizzle-orm");
+      const lead = await d.select().from(leads).where(eq(leads.id, input.id)).limit(1);
+      const activities = await db.listLeadActivities(input.id);
+      return lead[0] ? { ...lead[0], activities } : null;
     }),
   }),
   booking: router({
@@ -132,27 +173,41 @@ export const appRouter = router({
       return { success: true, configured: true, status: "under_review", whatsappUrl: notification.fallbackUrl, whatsappSent: notification.sent } as const;
     }),
     getStatus: publicProcedure.input(z.object({ bookingCode: z.string().min(4).max(40) })).query(async ({ input }) => { 
-      const booking = await db.getBookingByCode(input.bookingCode); 
-      return booking ? { status: booking.status, updatedAt: booking.submittedAt.toISOString() } : { status: "pending" as const, updatedAt: null }; 
+      const result = await db.getBookingByCode(input.bookingCode); 
+      return result ? { status: result.booking.status, updatedAt: result.booking.submittedAt.toISOString() } : { status: "pending" as const, updatedAt: null }; 
     }),
-    updateStatus: protectedProcedure.input(z.object({ bookingCode: z.string().min(4).max(40), status: z.enum(["pending", "under_review", "approved", "rejected"]) })).mutation(async ({ ctx, input }) => { 
+    updateStatus: protectedProcedure.input(z.object({ bookingCode: z.string().min(4).max(40), status: z.enum(["pending", "under_review", "approved", "rejected", "cancelled", "refunded"]) })).mutation(async ({ ctx, input }) => { 
       if (ctx.user.role !== "admin") throw new Error("Admin access required"); 
+      const oldBooking = await db.getBookingByCode(input.bookingCode);
       await db.updateBookingStatus(input.bookingCode, input.status);
-      const booking = await db.getBookingByCode(input.bookingCode);
-      if (!booking) throw new Error("Booking tidak ditemukan");
+      const result = await db.getBookingByCode(input.bookingCode);
+      
+      if (result) {
+        await db.logAudit(
+          ctx.user.id,
+          "update_booking_status",
+          "booking",
+          result.booking.id,
+          oldBooking?.booking,
+          result.booking
+        );
+      }
+      if (!result) throw new Error("Booking tidak ditemukan");
+      
+      const { booking, lead, trip, departure } = result;
       
       // Notify via WhatsApp
       const message = buildAdminWhatsAppMessage({ 
         bookingCode: booking.bookingCode,
-        tripName: "Trip", // Ideally fetch from DB
-        customerName: "Customer", // Ideally fetch from lead
+        tripName: trip?.title || "Trip",
+        customerName: lead?.name || "Customer",
         participants: booking.participantCount,
         total: parseFloat(booking.totalAmount.toString()),
         paymentMethod: "Bank Transfer",
         status: input.status,
-        phone: "", // Need to fetch from lead
-        email: "",
-        date: "",
+        phone: lead?.phone || "",
+        email: lead?.email || "",
+        date: departure?.startDate.toLocaleDateString() || "",
       });
       const notification = await notifyWhatsApp(message); 
       return { success: true, status: input.status, whatsappUrl: notification.fallbackUrl, whatsappSent: notification.sent } as const; 
@@ -160,27 +215,52 @@ export const appRouter = router({
     list: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role !== "admin") throw new Error("Admin access required");
       const list = await db.listBookings();
-      return list.map(b => ({
-        ...b,
-        submittedAt: b.submittedAt.toISOString(),
-        total: parseFloat(b.totalAmount.toString()),
-        // Map back to frontend expected shape
-        tripName: "Trip", // TODO: join with trips table
-        customerName: "Customer", // TODO: join with leads table
+      return list.map(({ booking, lead, trip, departure }) => ({
+        ...booking,
+        submittedAt: booking.submittedAt.toISOString(),
+        total: parseFloat(booking.totalAmount.toString()),
+        tripName: trip?.title || "Unknown Trip",
+        customerName: lead?.name || "Anonymous",
+        departureDate: departure?.startDate.toISOString(),
       }));
     }),
     getStats: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role !== "admin") throw new Error("Admin access required");
       const list = await db.listBookings();
-      const totalRevenue = list.filter(b => b.status === "approved").reduce((sum, b) => sum + parseFloat(b.totalAmount.toString()), 0);
-      const pendingRevenue = list.filter(b => b.status === "under_review").reduce((sum, b) => sum + parseFloat(b.totalAmount.toString()), 0);
+      const totalRevenue = list.filter(b => b.booking.status === "approved").reduce((sum, b) => sum + parseFloat(b.booking.totalAmount.toString()), 0);
+      const pendingRevenue = list.filter(b => b.booking.status === "under_review").reduce((sum, b) => sum + parseFloat(b.booking.totalAmount.toString()), 0);
       return {
         totalBookings: list.length,
-        approvedBookings: list.filter(b => b.status === "approved").length,
-        pendingBookings: list.filter(b => b.status === "under_review").length,
+        approvedBookings: list.filter(b => b.booking.status === "approved").length,
+        pendingBookings: list.filter(b => b.booking.status === "under_review").length,
         totalRevenue,
         pendingRevenue,
       };
+    }),
+  }),
+  ai: router({
+    ask: publicProcedure.input(z.object({
+      message: z.string(),
+      leadId: z.number().optional(),
+    })).mutation(async ({ input }) => {
+      const tripsData = await db.listTrips();
+      const context = tripsData.map(t => `- ${t.title}: ${t.description} (Price: Rp ${t.priceBase})`).join("\n");
+      
+      const res = await invokeLLM({
+        model: "gpt-5-mini",
+        messages: [
+          { role: "system", content: `You are an AI Sales Assistant for Or.Trip Adventure. Use the following trip context to answer user questions about Indonesian mountain trips. Be helpful, professional, and encourage booking.\n\nContext:\n${context}` },
+          { role: "user", content: input.message },
+        ],
+      });
+      
+      const answer = res.choices[0].message.content || "Maaf, saya sedang mengalami kendala teknis.";
+      
+      if (input.leadId) {
+        await db.logLeadActivity(input.leadId, "chatbot_interaction", { message: input.message, answer }, 15);
+      }
+      
+      return { answer };
     }),
   }),
 });

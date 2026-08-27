@@ -141,6 +141,49 @@ export async function updateLeadScore(id: number, score: number) {
   await db.update(leads).set({ score, lastActivity: new Date() }).where(eq(leads.id, id));
 }
 
+export async function logLeadActivity(leadId: number, action: string, metadata: any = {}, scoreAdded: number = 0) {
+  const db = await getDb();
+  if (!db) return;
+  const { leadActivities } = require("../drizzle/schema");
+  await db.insert(leadActivities).values({
+    leadId,
+    action,
+    metadata,
+    scoreAdded,
+  });
+  
+  if (scoreAdded !== 0) {
+    const [lead] = await db.select().from(leads).where(eq(leads.id, leadId)).limit(1);
+    if (lead) {
+      await db.update(leads).set({ 
+        score: lead.score + scoreAdded,
+        lastActivity: new Date() 
+      }).where(eq(leads.id, leadId));
+    }
+  }
+}
+
+export async function listLeadActivities(leadId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const { leadActivities } = require("../drizzle/schema");
+  return db.select().from(leadActivities).where(eq(leadActivities.leadId, leadId)).orderBy(leadActivities.createdAt);
+}
+
+export async function logAudit(userId: number | null, action: string, entityType: string, entityId: number | null, oldData: any = null, newData: any = null) {
+  const db = await getDb();
+  if (!db) return;
+  const { auditLogs } = require("../drizzle/schema");
+  await db.insert(auditLogs).values({
+    userId,
+    action,
+    entityType,
+    entityId,
+    oldData,
+    newData,
+  });
+}
+
 /**
  * Booking Management
  */
@@ -159,13 +202,36 @@ export async function updateBookingStatus(bookingCode: string, status: any) {
 export async function listBookings() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(bookings).orderBy(bookings.submittedAt);
+  const { trips, tripDepartures } = require("../drizzle/schema");
+  return db.select({
+    booking: bookings,
+    lead: leads,
+    trip: trips,
+    departure: tripDepartures,
+  })
+  .from(bookings)
+  .leftJoin(leads, eq(bookings.leadId, leads.id))
+  .leftJoin(tripDepartures, eq(bookings.departureId, tripDepartures.id))
+  .leftJoin(trips, eq(tripDepartures.tripId, trips.id))
+  .orderBy(bookings.submittedAt);
 }
 
 export async function getBookingByCode(bookingCode: string) {
   const db = await getDb();
   if (!db) return null;
-  const result = await db.select().from(bookings).where(eq(bookings.bookingCode, bookingCode)).limit(1);
+  const { trips, tripDepartures } = require("../drizzle/schema");
+  const result = await db.select({
+    booking: bookings,
+    lead: leads,
+    trip: trips,
+    departure: tripDepartures,
+  })
+  .from(bookings)
+  .leftJoin(leads, eq(bookings.leadId, leads.id))
+  .leftJoin(tripDepartures, eq(bookings.departureId, tripDepartures.id))
+  .leftJoin(trips, eq(tripDepartures.tripId, trips.id))
+  .where(eq(bookings.bookingCode, bookingCode))
+  .limit(1);
   return result.length > 0 ? result[0] : null;
 }
 

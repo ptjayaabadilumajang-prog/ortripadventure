@@ -13,16 +13,22 @@ import { RanuRouteMap } from '@/components/ranu-route-map';
 export default function TripDetailScreen() {
   const { id, package: packageId } = useLocalSearchParams<{ id: string; package?: string }>();
   const { data: tripData } = trpc.trips.getBySlug.useQuery({ slug: id });
+  const logActivityMutation = trpc.crm.logActivity.useMutation();
+  
+  // Log view activity (client-side simple lead tracking would need a persistent leadId, 
+  // but for now we log if we had one or just skip for anonymous)
   
   // Fallback to demo data if DB entry not found
   const demoTrip = getTrip(id);
   const trip = tripData ? {
     ...demoTrip,
-    title: tripData.title,
-    location: tripData.location || demoTrip.location,
-    type: tripData.type,
-    price: parseFloat(tripData.priceBase.toString()),
-    description: tripData.description || demoTrip.description,
+    title: tripData.trip.title,
+    location: tripData.destination ? `${tripData.destination.name}, ${tripData.destination.region}` : demoTrip.location,
+    type: tripData.trip.type,
+    price: parseFloat(tripData.trip.priceBase.toString()),
+    description: tripData.trip.description || demoTrip.description,
+    includes: (tripData.trip.facilities as string[]) || demoTrip.includes,
+    itinerary: (tripData.trip.itinerary as string[]) || demoTrip.itinerary,
   } : demoTrip;
 
   const isRanu = trip.id === 'ranu-kumbolo';

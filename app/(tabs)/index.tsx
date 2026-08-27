@@ -9,25 +9,29 @@ import { LegalLinks, openWhatsApp } from '@/components/whatsapp-fab';
 
 export default function HomeScreen() {
   const { data: tripsData } = trpc.trips.list.useQuery();
-  const trips = (tripsData || []).map(t => ({
-    id: t.slug,
-    title: t.title,
-    location: t.location || "",
-    province: "Jawa Timur",
-    type: t.type,
-    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
-    date: 'Tersedia',
-    duration: '2 hari 1 malam',
-    difficulty: 'Pemula' as const,
-    price: parseFloat(t.priceBase.toString()),
-    seats: 12,
-    rating: 4.8,
-    tag: 'Verified',
-    description: t.description || "",
-    includes: [],
-    itinerary: [],
-    faqs: [],
-  }));
+  const trips = (tripsData || []).map(item => {
+    const t = item.trip;
+    const d = item.destination;
+    return {
+      id: t.slug,
+      title: t.title,
+      location: d ? `${d.name}, ${d.region}` : "",
+      province: d?.region || "Jawa Timur",
+      type: t.type,
+      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
+      date: 'Tersedia',
+      duration: '2 hari 1 malam',
+      difficulty: 'Pemula' as const,
+      price: parseFloat(t.priceBase.toString()),
+      seats: 12,
+      rating: 4.8,
+      tag: 'Verified',
+      description: t.description || "",
+      includes: (t.facilities as string[]) || [],
+      itinerary: (t.itinerary as string[]) || [],
+      faqs: [],
+    };
+  });
 
   return (
     <ScreenContainer className="bg-background" safeAreaClassName="bg-background">

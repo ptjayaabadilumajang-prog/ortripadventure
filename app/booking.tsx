@@ -12,7 +12,7 @@ export default function BookingScreen() {
   const { tripId, package: packageId } = useLocalSearchParams<{ tripId?: string; package?: string }>();
   const trip = getTrip(tripId);
   const createLeadMutation = trpc.crm.createLead.useMutation();
-  const updateScoreMutation = trpc.crm.updateScore.useMutation();
+  const logActivityMutation = trpc.crm.logActivity.useMutation();
   const [leadId, setLeadId] = useState<number | null>(null);
 
   const handleFieldBlur = async () => {
@@ -26,11 +26,12 @@ export default function BookingScreen() {
           productInterest: trip.id,
         });
         setLeadId(id);
+        logActivityMutation.mutate({ leadId: id, action: 'start_booking', scoreAdded: 10 });
       } catch (e) {
         console.error("Failed to create lead", e);
       }
     } else if (leadId) {
-      updateScoreMutation.mutate({ id: leadId, score: 10 });
+      logActivityMutation.mutate({ leadId, action: 'fill_field', scoreAdded: 5 });
     }
   };
   const selectedPackage = trip.id === 'ranu-kumbolo' ? getRanuPackage(packageId) : null;

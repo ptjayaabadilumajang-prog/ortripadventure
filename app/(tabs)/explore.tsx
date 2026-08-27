@@ -10,25 +10,29 @@ export default function ExploreScreen() {
   const [type, setType] = useState('Semua');
   const { data: tripsData } = trpc.trips.list.useQuery();
   
-  const trips = useMemo(() => (tripsData || []).map(t => ({
-    id: t.slug,
-    title: t.title,
-    location: t.location || "",
-    province: "Jawa Timur",
-    type: t.type,
-    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
-    date: 'Tersedia',
-    duration: '2 hari 1 malam',
-    difficulty: 'Pemula' as const,
-    price: parseFloat(t.priceBase.toString()),
-    seats: 12,
-    rating: 4.8,
-    tag: 'Verified',
-    description: t.description || "",
-    includes: [],
-    itinerary: [],
-    faqs: [],
-  })), [tripsData]);
+  const trips = useMemo(() => (tripsData || []).map(item => {
+    const t = item.trip;
+    const d = item.destination;
+    return {
+      id: t.slug,
+      title: t.title,
+      location: d ? `${d.name}, ${d.region}` : "",
+      province: d?.region || "Jawa Timur",
+      type: t.type,
+      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
+      date: 'Tersedia',
+      duration: '2 hari 1 malam',
+      difficulty: 'Pemula' as const,
+      price: parseFloat(t.priceBase.toString()),
+      seats: 12,
+      rating: 4.8,
+      tag: 'Verified',
+      description: t.description || "",
+      includes: (t.facilities as string[]) || [],
+      itinerary: (t.itinerary as string[]) || [],
+      faqs: [],
+    };
+  }), [tripsData]);
 
   const filtered = useMemo(() => trips.filter((trip) => (type === 'Semua' || trip.type === type) && `${trip.title} ${trip.location}`.toLowerCase().includes(query.toLowerCase())), [query, type, trips]);
   return <ScreenContainer className="bg-background" safeAreaClassName="bg-background"><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 36 }}>

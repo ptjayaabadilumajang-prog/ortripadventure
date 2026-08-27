@@ -1,10 +1,12 @@
-export type BookingValidationStatus = "pending" | "under_review" | "approved" | "rejected";
+export type BookingValidationStatus = "pending" | "under_review" | "approved" | "rejected" | "cancelled" | "refunded";
 
 export const bookingStatusLabels: Record<BookingValidationStatus, string> = {
   pending: "Menunggu bukti pembayaran",
   under_review: "Sedang diverifikasi admin",
   approved: "Pembayaran disetujui",
   rejected: "Perlu perbaikan bukti pembayaran",
+  cancelled: "Dibatalkan",
+  refunded: "Dana dikembalikan",
 };
 
 export const bookingStatusColors: Record<BookingValidationStatus, string> = {
@@ -12,6 +14,8 @@ export const bookingStatusColors: Record<BookingValidationStatus, string> = {
   under_review: "bg-warning/15 text-warning",
   approved: "bg-success/15 text-success",
   rejected: "bg-error/15 text-error",
+  cancelled: "bg-neutral text-muted",
+  refunded: "bg-primary/10 text-primary",
 };
 
 export function buildAdminWhatsAppMessage(input: {

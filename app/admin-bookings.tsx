@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Linking, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { ScreenContainer } from '@/components/screen-container';
 import { PrimaryButton } from '@/components/trip-ui';
 import { trpc } from '@/lib/trpc';
@@ -15,12 +15,14 @@ export default function AdminDashboardScreen() {
   const [bookingCode, setBookingCode] = useState('');
   const [status, setStatus] = useState<BookingValidationStatus>('approved');
   const [message, setMessage] = useState('');
-  const [activeTab, setActiveTab] = useState<'finance' | 'leads' | 'trips'>('finance');
+  const [activeTab, setActiveTab] = useState<'finance' | 'leads' | 'trips' | 'settings'>('finance');
+  const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
   
   const statsQuery = trpc.booking.getStats.useQuery(undefined, { enabled: !!user });
   const listQuery = trpc.booking.list.useQuery(undefined, { enabled: !!user });
   const leadsQuery = trpc.crm.listLeads.useQuery(undefined, { enabled: !!user && activeTab === 'leads' });
   const tripsQuery = trpc.trips.list.useQuery(undefined, { enabled: !!user && activeTab === 'trips' });
+  const leadDetailsQuery = trpc.crm.getLeadDetails.useQuery({ id: selectedLeadId! }, { enabled: !!user && !!selectedLeadId });
 
   const updateStatus = trpc.booking.updateStatus.useMutation({
     onSuccess: () => {
@@ -54,14 +56,14 @@ export default function AdminDashboardScreen() {
         <Text className="mt-1 font-body text-sm text-muted">Manajemen operasional Or.Trip Adventure.</Text>
 
         <View className="mt-6 flex-row gap-2">
-          {(['finance', 'leads', 'trips'] as const).map((tab) => (
+          {(['finance', 'leads', 'trips', 'settings'] as const).map((tab) => (
             <Pressable 
               key={tab} 
               onPress={() => setActiveTab(tab)} 
               className={`rounded-full px-4 py-2 ${activeTab === tab ? 'bg-primary' : 'bg-surface border border-border'}`}
             >
               <Text className={`font-body text-[10px] font-extrabold uppercase tracking-widest ${activeTab === tab ? 'text-white' : 'text-foreground'}`}>
-                {tab === 'finance' ? 'Keuangan' : tab === 'leads' ? 'Leads CRM' : 'Produk Trip'}
+                {tab === 'finance' ? 'Keuangan' : tab === 'leads' ? 'Leads' : tab === 'trips' ? 'Trip' : 'Config'}
               </Text>
             </Pressable>
           ))}
@@ -152,7 +154,7 @@ export default function AdminDashboardScreen() {
             <Text className="font-heading text-xl font-bold text-foreground">Lead CRM</Text>
             <View className="mt-4 gap-y-3">
               {(leadsQuery.data ?? []).map((lead: any) => (
-                <View key={lead.id} className="rounded-2xl border border-border bg-surface p-4">
+                <Pressable key={lead.id} onPress={() => setSelectedLeadId(lead.id)} className="rounded-2xl border border-border bg-surface p-4 active:opacity-70">
                   <View className="flex-row justify-between items-center">
                     <View>
                       <Text className="font-heading text-base font-bold text-foreground">{lead.name || 'Anonymous'}</Text>
@@ -166,7 +168,7 @@ export default function AdminDashboardScreen() {
                     </View>
                   </View>
                   <Text className="mt-2 font-body text-[10px] text-muted">Interest: {lead.productInterest || 'General'}</Text>
-                </View>
+                </Pressable>
               ))}
             </View>
           </View>
@@ -176,25 +178,99 @@ export default function AdminDashboardScreen() {
           <View className="mt-6">
             <Text className="font-heading text-xl font-bold text-foreground">Manajemen Trip</Text>
             <View className="mt-4 gap-y-3">
-              {(tripsQuery.data ?? []).map((trip: any) => (
-                <View key={trip.id} className="rounded-2xl border border-border bg-surface p-4">
-                  <View className="flex-row justify-between items-center">
-                    <View className="flex-1">
-                      <Text className="font-heading text-base font-bold text-foreground">{trip.title}</Text>
-                      <Text className="font-body text-xs text-muted">{formatIDR(parseFloat(trip.priceBase))}</Text>
-                    </View>
-                    <View className={`rounded-full px-3 py-1 ${trip.isVerified ? 'bg-success/10' : 'bg-error/10'}`}>
-                      <Text className={`font-body text-[10px] font-bold ${trip.isVerified ? 'text-success' : 'text-error'}`}>
-                        {trip.isVerified ? 'VERIFIED' : 'UNVERIFIED'}
-                      </Text>
+              {(tripsQuery.data ?? []).map((item: any) => {
+                const trip = item.trip;
+                const dest = item.destination;
+                return (
+                  <View key={trip.id} className="rounded-2xl border border-border bg-surface p-4">
+                    <View className="flex-row justify-between items-center">
+                      <View className="flex-1">
+                        <Text className="font-heading text-base font-bold text-foreground">{trip.title}</Text>
+                        <Text className="font-body text-xs text-muted">{dest ? `${dest.name}, ${dest.region}` : 'No Location'} · {formatIDR(parseFloat(trip.priceBase))}</Text>
+                      </View>
+                      <View className={`rounded-full px-3 py-1 ${trip.isVerified ? 'bg-success/10' : 'bg-error/10'}`}>
+                        <Text className={`font-body text-[10px] font-bold ${trip.isVerified ? 'text-success' : 'text-error'}`}>
+                          {trip.isVerified ? 'VERIFIED' : 'UNVERIFIED'}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {activeTab === 'settings' && (
+          <View className="mt-6">
+            <Text className="font-heading text-xl font-bold text-foreground">Business Configuration</Text>
+            <Text className="mt-1 font-body text-xs text-muted">Update pengaturan operasional global.</Text>
+            
+            <View className="mt-6 gap-y-4">
+              <ConfigItem title="Official Contacts" description="Nomor WhatsApp admin, email, dan link sosial media." />
+              <ConfigItem title="Pricing & Packages" description="Kelola harga dasar dan paket meeting point." />
+              <ConfigItem title="Lead Scoring Rules" description="Atur bobot poin untuk aktivitas chatbot dan form." />
+              <ConfigItem title="Google Sheets Integration" description="Konfigurasi URL webhook Apps Script." />
             </View>
           </View>
         )}
       </ScrollView>
+
+      <Modal visible={Boolean(selectedLeadId)} transparent animationType="slide">
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-background rounded-t-[32px] p-6 h-[80%]">
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="font-heading text-2xl font-bold text-foreground">Lead Details</Text>
+              <Pressable onPress={() => setSelectedLeadId(null)} className="h-10 w-10 items-center justify-center rounded-full bg-surface">
+                <IconSymbol name="xmark" size={20} color="#1A251B" />
+              </Pressable>
+            </View>
+            
+            {leadDetailsQuery.isLoading ? (
+              <Text className="font-body text-muted">Loading details...</Text>
+            ) : leadDetailsQuery.data ? (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View className="rounded-3xl bg-neutral p-5">
+                  <Text className="font-body text-xs font-extrabold text-primary uppercase tracking-widest">Customer Info</Text>
+                  <Text className="mt-2 font-heading text-xl font-bold text-foreground">{(leadDetailsQuery.data as any).name}</Text>
+                  <Text className="mt-1 font-body text-sm text-muted">{(leadDetailsQuery.data as any).phone}</Text>
+                  <Text className="font-body text-sm text-muted">{(leadDetailsQuery.data as any).email}</Text>
+                  
+                  <View className="mt-4 flex-row gap-4">
+                    <View>
+                      <Text className="font-body text-[10px] text-muted uppercase">Score</Text>
+                      <Text className="font-body text-lg font-extrabold text-primary">{(leadDetailsQuery.data as any).score}</Text>
+                    </View>
+                    <View>
+                      <Text className="font-body text-[10px] text-muted uppercase">Status</Text>
+                      <Text className="font-body text-lg font-extrabold text-foreground">{(leadDetailsQuery.data as any).status}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                <Text className="mt-8 font-heading text-lg font-bold text-foreground">Activity Timeline</Text>
+                <View className="mt-4 gap-y-4">
+                  {((leadDetailsQuery.data as any).activities || []).map((act: any) => (
+                    <View key={act.id} className="flex-row">
+                      <View className="w-10 items-center">
+                        <View className="h-2 w-2 rounded-full bg-primary mt-2" />
+                        <View className="flex-1 w-px bg-border" />
+                      </View>
+                      <View className="flex-1 pb-4">
+                        <Text className="font-body text-sm font-bold text-foreground">{act.action.replace(/_/g, ' ')}</Text>
+                        <Text className="font-body text-[10px] text-muted">{new Date(act.createdAt).toLocaleString()}</Text>
+                        {act.scoreAdded > 0 && (
+                          <Text className="mt-1 font-body text-[10px] text-primary font-bold">+{act.scoreAdded} points</Text>
+                        )}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </ScrollView>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }
@@ -208,5 +284,17 @@ function StatCard({ label, value, icon, color = '#1A251B' }: { label: string; va
       <Text className="font-body text-[10px] font-extrabold text-muted uppercase tracking-widest">{label}</Text>
       <Text className="mt-1 font-heading text-lg font-bold text-foreground" style={{ color }}>{value}</Text>
     </View>
+  );
+}
+
+function ConfigItem({ title, description }: { title: string; description: string }) {
+  return (
+    <Pressable className="rounded-2xl border border-border bg-surface p-4 flex-row items-center active:opacity-70">
+      <View className="flex-1">
+        <Text className="font-heading text-base font-bold text-foreground">{title}</Text>
+        <Text className="mt-1 font-body text-xs text-muted">{description}</Text>
+      </View>
+      <IconSymbol name="chevron.right" size={18} color="#2D5A27" />
+    </Pressable>
   );
 }

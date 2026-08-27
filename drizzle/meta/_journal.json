@@ -15,6 +15,20 @@
       "when": 1787812558174,
       "tag": "0001_omniscient_hannibal_king",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1787813682555,
+      "tag": "0002_amused_corsair",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1787813901867,
+      "tag": "0003_right_havok",
+      "breakpoints": true
     }
   ]
 }
