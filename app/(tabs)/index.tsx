@@ -4,10 +4,31 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Pill, PrimaryButton, SectionHeader, TripCard } from '@/components/trip-ui';
-import { trips } from '@/lib/demo-data';
+import { trpc } from '@/lib/trpc';
 import { LegalLinks, openWhatsApp } from '@/components/whatsapp-fab';
 
 export default function HomeScreen() {
+  const { data: tripsData } = trpc.trips.list.useQuery();
+  const trips = (tripsData || []).map(t => ({
+    id: t.slug,
+    title: t.title,
+    location: t.location || "",
+    province: "Jawa Timur",
+    type: t.type,
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
+    date: 'Tersedia',
+    duration: '2 hari 1 malam',
+    difficulty: 'Pemula' as const,
+    price: parseFloat(t.priceBase.toString()),
+    seats: 12,
+    rating: 4.8,
+    tag: 'Verified',
+    description: t.description || "",
+    includes: [],
+    itinerary: [],
+    faqs: [],
+  }));
+
   return (
     <ScreenContainer className="bg-background" safeAreaClassName="bg-background">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 36 }}>
@@ -29,7 +50,8 @@ export default function HomeScreen() {
 
         <View className="mx-5 mt-7 rounded-3xl border border-border bg-surface p-5"><View className="flex-row items-center"><View className="h-10 w-10 items-center justify-center rounded-2xl bg-accent"><IconSymbol name="sparkles" size={20} color="#2D5A27" /></View><View className="ml-3 flex-1"><Text className="font-heading text-lg font-bold text-foreground">Butuh perjalanan khusus?</Text><Text className="mt-1 font-body text-xs leading-5 text-muted">Ceritakan kebutuhan grupmu, kami bantu rancang dari awal.</Text></View></View><View className="mt-4"><PrimaryButton label="Rancang private trip" icon="arrow.right" onPress={() => router.push('/private-trip')} /></View></View>
 
-        <View className="mx-5 mt-7 rounded-3xl border border-border bg-surface p-5"><View className="flex-row items-start"><View className="h-10 w-10 items-center justify-center rounded-2xl bg-[#E8F0E6]"><IconSymbol name="doc.text.fill" size={20} color="#2D5A27" /></View><View className="ml-3 flex-1"><Text className="font-heading text-lg font-bold text-foreground">Google Workspace</Text><Text className="mt-1 font-body text-xs leading-5 text-muted">Drive, Docs, Sheets, dan Slides siap digunakan untuk mengelola materi perjalanan.</Text></View></View><View className="mt-4 rounded-2xl bg-[#FFF5E0] p-3"><Text className="font-body text-xs font-extrabold text-[#8A5A00]">Tes koneksi: perlu otorisasi tambahan</Text><Text className="mt-1 font-body text-[11px] leading-4 text-[#8A5A00]">Permintaan read-only ke Drive aman, tetapi token saat ini belum memiliki scope yang diperlukan. Tidak ada data pengguna yang diambil.</Text></View><Text className="mt-3 font-body text-[11px] leading-4 text-muted">Kapabilitas: mencari file, membaca spreadsheet, membaca dokumen, dan mengambil metadata presentasi setelah akses diberikan.</Text></View>\n\n        <View className="mt-7 px-5"><SectionHeader title="Kenapa Or.Trip?" action="" /><View className="flex-row justify-between"><TrustItem icon="shield.fill" title="Safety-first" body="Briefing & guide" /><TrustItem icon="person.2.fill" title="Small group" body="Lebih personal" /><TrustItem icon="checkmark.circle.fill" title="Jelas dari awal" body="Harga transparan" /></View><LegalLinks /></View>
+        <View className="mx-5 mt-7 rounded-3xl border border-border bg-surface p-5"><View className="flex-row items-start"><View className="h-10 w-10 items-center justify-center rounded-2xl bg-[#E8F0E6]"><IconSymbol name="doc.text.fill" size={20} color="#2D5A27" /></View><View className="ml-3 flex-1"><Text className="font-heading text-lg font-bold text-foreground">Google Workspace</Text><Text className="mt-1 font-body text-xs leading-5 text-muted">Drive, Docs, Sheets, dan Slides siap digunakan untuk mengelola materi perjalanan.</Text></View></View><View className="mt-4 rounded-2xl bg-[#FFF5E0] p-3"><Text className="font-body text-xs font-extrabold text-[#8A5A00]">Tes koneksi: perlu otorisasi tambahan</Text><Text className="mt-1 font-body text-[11px] leading-4 text-[#8A5A00]">Permintaan read-only ke Drive aman, tetapi token saat ini belum memiliki scope yang diperlukan. Tidak ada data pengguna yang diambil.</Text></View><Text className="mt-3 font-body text-[11px] leading-4 text-muted">Kapabilitas: mencari file, membaca spreadsheet, membaca dokumen, dan mengambil metadata presentasi setelah akses diberikan.</Text></View>
+        <View className="mt-7 px-5"><SectionHeader title="Kenapa Or.Trip?" action="" /><View className="flex-row justify-between"><TrustItem icon="shield.fill" title="Safety-first" body="Briefing & guide" /><TrustItem icon="person.2.fill" title="Small group" body="Lebih personal" /><TrustItem icon="checkmark.circle.fill" title="Jelas dari awal" body="Harga transparan" /></View><LegalLinks /></View>
       </ScrollView>
     </ScreenContainer>
   );

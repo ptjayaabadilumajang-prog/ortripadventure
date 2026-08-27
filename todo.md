@@ -71,7 +71,13 @@
 - [x] Display distance, elevation, and duration for each route segment.
 - [x] Validate enhanced map features and save a checkpoint.
 
-- [ ] Implement a dynamic date picker for user-selected departure schedules in the booking flow.
-- [ ] Audit the financial dashboard (admin) to ensure all revenue and expense tracking functions correctly.
-- [ ] Preview the entire app flow and perform regression testing on core features.
-- [ ] Validate the final financial dashboard and save a checkpoint.
+- [x] Implement a dynamic date picker for user-selected departure schedules in the booking flow.
+- [x] Audit the financial dashboard (admin) to ensure all revenue and expense tracking functions correctly.
+- [x] Preview the entire app flow and perform regression testing on core features.
+- [x] Validate the final financial dashboard and save a checkpoint.
+- [x] Transform application to a database-first architecture with durable MySQL storage.
+- [x] Migrate in-memory booking store to a secure database-backed tRPC router.
+- [x] Seed database with official Or.Trip Adventure trips, packages, and business configurations.
+- [x] Implement AI Marketing CRM foundation with lead tracking and activity scoring.
+- [x] Build an Admin Command Center for managing bookings, leads, and trip verification.
+- [x] Ensure all business data (pricing, itinerary, contacts) is admin-configurable and database-driven.

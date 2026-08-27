@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { appSettings, bookings, leads, tripDepartures, trips, users, type InsertUser } from "../drizzle/schema";
+import type { Booking, Lead, Trip, TripDeparture } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +90,82 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+/**
+ * Settings Management
+ */
+export async function getAppSetting<T>(key: string): Promise<T | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(appSettings).where(eq(appSettings.key, key)).limit(1);
+  return result.length > 0 ? (result[0].value as T) : null;
+}
+
+export async function setAppSetting(key: string, value: any): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(appSettings).values({ key, value }).onDuplicateKeyUpdate({ set: { value } });
+}
+
+/**
+ * Trip Management
+ */
+export async function listTrips() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(trips);
+}
+
+export async function getTripBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(trips).where(eq(trips.slug, slug)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+/**
+ * Lead & CRM Management
+ */
+export async function createLead(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(leads).values({
+    ...data,
+    lastActivity: new Date(),
+  });
+  return result[0].insertId;
+}
+
+export async function updateLeadScore(id: number, score: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(leads).set({ score, lastActivity: new Date() }).where(eq(leads.id, id));
+}
+
+/**
+ * Booking Management
+ */
+export async function createBooking(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(bookings).values(data);
+}
+
+export async function updateBookingStatus(bookingCode: string, status: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(bookings).set({ status }).where(eq(bookings.bookingCode, bookingCode));
+}
+
+export async function listBookings() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(bookings).orderBy(bookings.submittedAt);
+}
+
+export async function getBookingByCode(bookingCode: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(bookings).where(eq(bookings.bookingCode, bookingCode)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+

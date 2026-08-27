@@ -22,6 +22,7 @@ export function buildAdminWhatsAppMessage(input: {
   customerName: string;
   total: number;
   status: BookingValidationStatus;
+  [key: string]: any;
 }) {
   return [
     "Update booking Or.Trip Adventure",

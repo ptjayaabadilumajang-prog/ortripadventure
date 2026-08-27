@@ -6,12 +6,25 @@ import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PrimaryButton, SectionHeader } from '@/components/trip-ui';
 import { buildBookingWhatsAppMessage, formatIDR, gallery, getRanuPackage, getTrip, guides, ranuFacilities, ranuMeals, ranuPackages, ranuTimeline, testimonials } from '@/lib/demo-data';
+import { trpc } from '@/lib/trpc';
 import { openWhatsApp } from '@/components/whatsapp-fab';
 import { RanuRouteMap } from '@/components/ranu-route-map';
 
 export default function TripDetailScreen() {
   const { id, package: packageId } = useLocalSearchParams<{ id: string; package?: string }>();
-  const trip = getTrip(id);
+  const { data: tripData } = trpc.trips.getBySlug.useQuery({ slug: id });
+  
+  // Fallback to demo data if DB entry not found
+  const demoTrip = getTrip(id);
+  const trip = tripData ? {
+    ...demoTrip,
+    title: tripData.title,
+    location: tripData.location || demoTrip.location,
+    type: tripData.type,
+    price: parseFloat(tripData.priceBase.toString()),
+    description: tripData.description || demoTrip.description,
+  } : demoTrip;
+
   const isRanu = trip.id === 'ranu-kumbolo';
   const [selectedPackageId, setSelectedPackageId] = useState(packageId ?? ranuPackages[0].id);
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
