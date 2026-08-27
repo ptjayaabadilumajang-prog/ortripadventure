@@ -15,7 +15,7 @@ export default function AdminDashboardScreen() {
   const [bookingCode, setBookingCode] = useState('');
   const [status, setStatus] = useState<BookingValidationStatus>('approved');
   const [message, setMessage] = useState('');
-  const [activeTab, setActiveTab] = useState<'finance' | 'leads' | 'trips' | 'settings'>('finance');
+  const [activeTab, setActiveTab] = useState<'finance' | 'leads' | 'trips' | 'schedules' | 'settings'>('finance');
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
   
   const statsQuery = trpc.booking.getStats.useQuery(undefined, { enabled: !!user });
@@ -55,15 +55,15 @@ export default function AdminDashboardScreen() {
         <Text className="font-heading text-3xl font-bold text-foreground">Admin Command Center</Text>
         <Text className="mt-1 font-body text-sm text-muted">Manajemen operasional Or.Trip Adventure.</Text>
 
-        <View className="mt-6 flex-row gap-2">
-          {(['finance', 'leads', 'trips', 'settings'] as const).map((tab) => (
+        <View className="mt-6 flex-row flex-wrap gap-2">
+          {(['finance', 'leads', 'trips', 'schedules', 'settings'] as const).map((tab) => (
             <Pressable 
               key={tab} 
               onPress={() => setActiveTab(tab)} 
               className={`rounded-full px-4 py-2 ${activeTab === tab ? 'bg-primary' : 'bg-surface border border-border'}`}
             >
               <Text className={`font-body text-[10px] font-extrabold uppercase tracking-widest ${activeTab === tab ? 'text-white' : 'text-foreground'}`}>
-                {tab === 'finance' ? 'Keuangan' : tab === 'leads' ? 'Leads' : tab === 'trips' ? 'Trip' : 'Config'}
+                {tab === 'finance' ? 'Keuangan' : tab === 'leads' ? 'Leads' : tab === 'trips' ? 'Trip' : tab === 'schedules' ? 'Jadwal' : 'Config'}
               </Text>
             </Pressable>
           ))}
@@ -283,6 +283,43 @@ function StatCard({ label, value, icon, color = '#1A251B' }: { label: string; va
       </View>
       <Text className="font-body text-[10px] font-extrabold text-muted uppercase tracking-widest">{label}</Text>
       <Text className="mt-1 font-heading text-lg font-bold text-foreground" style={{ color }}>{value}</Text>
+    </View>
+  );
+}
+
+function TripScheduleSection({ trip }: { trip: any }) {
+  const { data: departures = [] } = trpc.trips.getDepartures.useQuery({ tripId: trip.id });
+  
+  return (
+    <View className="mb-4 rounded-3xl border border-border bg-surface p-5">
+      <Text className="font-heading text-lg font-bold text-foreground">{trip.title}</Text>
+      <View className="mt-3 gap-y-2">
+        {departures.length === 0 ? (
+          <Text className="font-body text-xs text-muted italic">Belum ada jadwal keberangkatan.</Text>
+        ) : (
+          departures.map((d: any) => {
+            const usage = ((d.seatsTotal - d.seatsAvailable) / d.seatsTotal) * 100;
+            return (
+              <View key={d.id} className="rounded-xl bg-background p-3">
+                <View className="flex-row justify-between items-center">
+                  <Text className="font-body text-xs font-bold text-foreground">
+                    {new Date(d.startDate).toLocaleDateString('id-ID')}
+                  </Text>
+                  <Text className="font-body text-[10px] text-muted">
+                    {d.seatsAvailable} / {d.seatsTotal} Kursi
+                  </Text>
+                </View>
+                <View className="mt-2 h-1.5 w-full rounded-full bg-neutral overflow-hidden">
+                  <View 
+                    className={`h-full rounded-full ${usage > 90 ? 'bg-error' : usage > 70 ? 'bg-warning' : 'bg-primary'}`} 
+                    style={{ width: `${usage}%` }} 
+                  />
+                </View>
+              </View>
+            );
+          })
+        )}
+      </View>
     </View>
   );
 }

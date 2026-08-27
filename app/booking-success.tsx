@@ -11,12 +11,14 @@ import { bookingStatusLabels, type BookingValidationStatus } from '@/lib/booking
 import { trpc } from '@/lib/trpc';
 
 export default function BookingSuccessScreen() {
-  const params = useLocalSearchParams<{ tripId?: string; package?: string; participants?: string; customerName?: string; phone?: string; email?: string; total?: string; paymentMethod?: string; bookingCode?: string }>();
+  const params = useLocalSearchParams<{ tripId?: string; tripSlug?: string; package?: string; participants?: string; customerName?: string; phone?: string; email?: string; total?: string; paymentMethod?: string; bookingCode?: string; date?: string; departureId?: string }>();
   const trip = getTrip(params.tripId);
   const selectedPackage = trip.id === 'ranu-kumbolo' ? getRanuPackage(params.package) : null;
   const participants = Number(params.participants ?? 1);
   const total = Number(params.total ?? trip.price * participants);
   const bookingCode = params.bookingCode ?? 'OR-PENDING';
+  const departureId = params.departureId ? Number(params.departureId) : undefined;
+  const date = params.date ?? trip.date;
   const [proof, setProof] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -46,7 +48,21 @@ export default function BookingSuccessScreen() {
       const rawBase64 = proof.base64 ?? await FileSystem.readAsStringAsync(proof.uri, { encoding: FileSystem.EncodingType.Base64 });
       const base64 = rawBase64.includes(',') ? rawBase64.split(',').pop() ?? rawBase64 : rawBase64;
       const uploaded = await uploadProof.mutateAsync({ bookingCode, fileName: proof.name, mimeType: (proof.mimeType ?? 'image/jpeg') as 'image/png' | 'image/jpeg' | 'image/webp' | 'application/pdf', base64 });
-      const result = await submitBooking.mutateAsync({ bookingCode, tripName: trip.title, packageName: selectedPackage?.name, date: trip.date, participants, customerName: params.customerName ?? '', phone: params.phone ?? '', email: params.email ?? '', total, paymentMethod: params.paymentMethod ?? 'qris', proofUrl: uploaded.url });
+      const result = await submitBooking.mutateAsync({ 
+        bookingCode, 
+        tripSlug: params.tripSlug || params.tripId,
+        tripName: trip.title, 
+        packageName: selectedPackage?.name, 
+        date, 
+        departureId,
+        participants, 
+        customerName: params.customerName ?? '', 
+        phone: params.phone ?? '', 
+        email: params.email ?? '', 
+        total, 
+        paymentMethod: params.paymentMethod ?? 'qris', 
+        proofUrl: uploaded.url 
+      });
       setStatus(result.status);
       setWhatsappUrl(result.whatsappUrl);
       setSubmitted(true);

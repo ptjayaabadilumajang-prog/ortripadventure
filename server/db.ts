@@ -190,13 +190,95 @@ export async function logAudit(userId: number | null, action: string, entityType
 export async function createBooking(data: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.insert(bookings).values(data);
+  
+  const { tripDepartures, waitlists } = require("../drizzle/schema");
+  
+  // If departureId is provided, we use a transaction to check and update quota
+  if (data.departureId && data.departureId !== 0) {
+    return await db.transaction(async (tx) => {
+      // 1. Lock the departure row for update
+      const [departure] = await tx.select()
+        .from(tripDepartures)
+        .where(eq(tripDepartures.id, data.departureId))
+        .for("update");
+
+      if (!departure) throw new Error("Keberangkatan tidak ditemukan");
+
+      // 2. Check if quota is enough
+      if (departure.seatsAvailable < data.participantCount) {
+        throw new Error("QUOTA_FULL");
+      }
+
+      // 3. Update quota
+      await tx.update(tripDepartures)
+        .set({ seatsAvailable: departure.seatsAvailable - data.participantCount })
+        .where(eq(tripDepartures.id, data.departureId));
+
+      // 4. Insert booking
+      const result = await tx.insert(bookings).values({
+        ...data,
+        submittedAt: new Date(),
+      });
+      return result[0].insertId;
+    });
+  }
+
+  const result = await db.insert(bookings).values({
+    ...data,
+    submittedAt: new Date(),
+  });
+  return result[0].insertId;
+}
+
+export async function addToWaitlist(tripId: number, departureId: number | null, leadId: number) {
+  const db = await getDb();
+  if (!db) return;
+  const { waitlists } = require("../drizzle/schema");
+  const result = await db.insert(waitlists).values({
+    tripId,
+    departureId,
+    leadId,
+    priority: 0,
+    createdAt: new Date(),
+  });
+  return result[0].insertId;
+}
+
+export async function getDeparturesByTrip(tripId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const { tripDepartures } = require("../drizzle/schema");
+  return db.select().from(tripDepartures).where(eq(tripDepartures.tripId, tripId));
 }
 
 export async function updateBookingStatus(bookingCode: string, status: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(bookings).set({ status }).where(eq(bookings.bookingCode, bookingCode));
+  
+  const { bookings, tripDepartures } = require("../drizzle/schema");
+  
+  // If status is being changed to cancelled, rejected, or refunded, we should return the quota
+  if (["cancelled", "rejected", "refunded"].includes(status)) {
+    await db.transaction(async (tx) => {
+      const [booking] = await tx.select().from(bookings).where(eq(bookings.bookingCode, bookingCode)).for("update");
+      
+      if (booking && booking.departureId && booking.departureId !== 0 && booking.status !== status) {
+        // Only return quota if the previous status was approved or under_review
+        if (["approved", "under_review", "pending"].includes(booking.status)) {
+          const [departure] = await tx.select().from(tripDepartures).where(eq(tripDepartures.id, booking.departureId)).for("update");
+          if (departure) {
+            await tx.update(tripDepartures)
+              .set({ seatsAvailable: departure.seatsAvailable + booking.participantCount })
+              .where(eq(tripDepartures.id, booking.departureId));
+          }
+        }
+      }
+      
+      await tx.update(bookings).set({ status }).where(eq(bookings.bookingCode, bookingCode));
+    });
+  } else {
+    await db.update(bookings).set({ status }).where(eq(bookings.bookingCode, bookingCode));
+  }
 }
 
 export async function listBookings() {

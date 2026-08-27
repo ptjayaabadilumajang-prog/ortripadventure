@@ -81,3 +81,6 @@
 - [x] Implement AI Marketing CRM foundation with lead tracking and activity scoring.
 - [x] Build an Admin Command Center for managing bookings, leads, and trip verification.
 - [x] Ensure all business data (pricing, itinerary, contacts) is admin-configurable and database-driven.
+- [x] Implement departure quota checking and overbooking prevention with database transactions.
+- [x] Add waitlist logic when trip quota is full.
+- [x] Build Admin Schedule Management tab to monitor seat availability.

@@ -10,10 +10,11 @@ import { invokeLLM } from "./_core/llm";
 
 const bookingPayload = z.object({
   bookingCode: z.string().min(4).max(40),
-  tripSlug: z.string().min(2).max(64).optional(), // New: linked to trips.slug
+  tripSlug: z.string().min(2).max(64).optional(), 
   tripName: z.string().min(2).max(160), 
   packageName: z.string().max(160).optional(), 
   date: z.string().min(2).max(80), 
+  departureId: z.number().optional(), // New: linked to tripDepartures.id
   participants: z.number().int().min(1).max(30), 
   customerName: z.string().min(2).max(120), 
   phone: z.string().min(6).max(40), 
@@ -94,6 +95,9 @@ export const appRouter = router({
       // @ts-ignore
       await d.update(require("../drizzle/schema").trips).set(data).where(require("drizzle-orm").eq(require("../drizzle/schema").trips.id, id));
     }),
+    getDepartures: publicProcedure.input(z.object({ tripId: z.number() })).query(async ({ input }) => {
+      return db.getDeparturesByTrip(input.tripId);
+    }),
   }),
   crm: router({
     createLead: publicProcedure.input(z.object({
@@ -143,19 +147,35 @@ export const appRouter = router({
         score: 100
       });
 
-      // 2. Save to database
-      await db.createBooking({
-        bookingCode: input.bookingCode,
-        leadId,
-        departureId: 0, // Placeholder for now, should be linked to tripDepartures
-        packageId: input.packageName,
-        participantCount: input.participants,
-        totalAmount: input.total.toString(),
-        status: "under_review",
-        paymentProofUrl: input.proofUrl,
-      });
+      // 2. Save to database with quota check
+      let status: any = "under_review";
+      let waitlisted = false;
+      
+      try {
+        await db.createBooking({
+          bookingCode: input.bookingCode,
+          leadId,
+          departureId: input.departureId || 0,
+          packageId: input.packageName,
+          participantCount: input.participants,
+          totalAmount: input.total.toString(),
+          status: "under_review",
+          paymentProofUrl: input.proofUrl,
+        });
+      } catch (error: any) {
+        if (error.message === "QUOTA_FULL") {
+          // Move to waitlist
+          const tripData = await db.listTrips();
+          const trip = tripData.find(t => t.slug === input.tripSlug);
+          await db.addToWaitlist(trip?.id || 0, input.departureId || null, leadId);
+          status = "pending"; // Or a specific waitlist status
+          waitlisted = true;
+        } else {
+          throw error;
+        }
+      }
 
-      const message = buildAdminWhatsAppMessage({ ...input, status: "under_review" });
+      const message = buildAdminWhatsAppMessage({ ...input, status: waitlisted ? "pending" : "under_review" });
       const notification = await notifyWhatsApp(message);
       
       const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
