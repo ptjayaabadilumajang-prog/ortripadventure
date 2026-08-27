@@ -31,6 +31,14 @@ const MAPPING = {
   'xmark': 'close',
   'camera.fill': 'photo-camera',
   'sparkles': 'auto-awesome',
+  'doc.text.fill': 'description',
+  'clock': 'schedule',
+  'chevron.up': 'expand-less',
+  'chevron.down': 'expand-more',
+  'banknote.fill': 'payments',
+  'checkmark.seal.fill': 'verified',
+  'bag.fill': 'shopping-bag',
+  'paperclip': 'attach-file',
 } as IconMapping;
 
 export function IconSymbol({ name, size = 24, color, style }: { name: IconSymbolName; size?: number; color: string | OpaqueColorValue; style?: StyleProp<TextStyle>; weight?: SymbolWeight }) {

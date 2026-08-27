@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Linking, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { ScreenContainer } from '@/components/screen-container';
 import { PrimaryButton } from '@/components/trip-ui';
@@ -33,148 +33,108 @@ export default function AdminDashboardScreen() {
     onSuccess: () => {
       statsQuery.refetch();
       listQuery.refetch();
-    }
+      setBookingCode('');
+      setMessage('Status booking berhasil diperbarui.');
+    },
   });
 
-  const sendTestMutation = trpc.notifications.test.useMutation();
+  const updateTrip = trpc.trips.update.useMutation({
+    onSuccess: () => tripsQuery.refetch(),
+  });
 
-  async function update() {
-    if (!bookingCode.trim()) { setMessage('Masukkan kode booking.'); return; }
-    setMessage('');
-    try {
-      const result = await updateStatus.mutateAsync({ bookingCode: bookingCode.trim(), status });
-      setMessage('Status booking diperbarui.');
-      if (result.whatsappUrl) await Linking.openURL(result.whatsappUrl);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Status belum dapat diperbarui.');
-    }
-  }
+  const sendTestNotification = trpc.notifications.test.useMutation({
+    onSuccess: () => alert('Notifikasi tes berhasil dikirim!'),
+  });
 
-  if (authLoading) return <ScreenContainer className="items-center justify-center"><Text className="font-body text-muted">Memuat akses admin...</Text></ScreenContainer>;
-  if (!user) return <ScreenContainer className="p-5"><Text className="font-heading text-3xl font-bold text-foreground">Akses admin</Text><Text className="mt-3 font-body leading-6 text-muted">Masuk sebagai admin Or.Trip untuk mengakses dashboard keuangan dan memvalidasi booking.</Text></ScreenContainer>;
-
-  const stats = statsQuery.data;
-  const bookings = listQuery.data ?? [];
+  if (authLoading) return <ScreenContainer className="items-center justify-center"><Text className="font-body text-muted">Memeriksa otorisasi...</Text></ScreenContainer>;
+  if (!user || (user as any).role !== 'admin') return <ScreenContainer className="items-center justify-center"><Text className="font-heading text-xl font-bold text-error">Akses Ditolak</Text><Text className="mt-2 font-body text-muted">Halaman ini hanya untuk administrator.</Text></ScreenContainer>;
 
   return (
-    <ScreenContainer edges={['top', 'left', 'right', 'bottom']} className="bg-background">
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-        <Text className="font-heading text-3xl font-bold text-foreground">Admin Command Center</Text>
-        <Text className="mt-1 font-body text-sm text-muted">Manajemen operasional Or.Trip Adventure.</Text>
+    <ScreenContainer className="bg-background" safeAreaClassName="bg-background">
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        <View className="px-5 pt-6">
+          <Text className="font-body text-xs font-bold uppercase tracking-widest text-primary">Admin Command Center</Text>
+          <Text className="mt-1 font-heading text-3xl font-bold text-foreground">Or.Trip Dashboard</Text>
+        </View>
 
-        <View className="mt-6 flex-row flex-wrap gap-2">
+        <View className="mt-6 flex-row border-b border-border px-5">
           {(['finance', 'leads', 'trips', 'schedules', 'settings'] as const).map((tab) => (
             <Pressable 
               key={tab} 
-              onPress={() => setActiveTab(tab)} 
-              className={`rounded-full px-4 py-2 ${activeTab === tab ? 'bg-primary' : 'bg-surface border border-border'}`}
+              onPress={() => setActiveTab(tab)}
+              className={`mr-6 border-b-2 pb-3 ${activeTab === tab ? 'border-primary' : 'border-transparent'}`}
             >
-              <Text className={`font-body text-[10px] font-extrabold uppercase tracking-widest ${activeTab === tab ? 'text-white' : 'text-foreground'}`}>
-                {tab === 'finance' ? 'Keuangan' : tab === 'leads' ? 'Leads' : tab === 'trips' ? 'Trip' : tab === 'schedules' ? 'Jadwal' : 'Config'}
-              </Text>
+              <Text className={`font-body text-sm font-bold capitalize ${activeTab === tab ? 'text-primary' : 'text-muted'}`}>{tab}</Text>
             </Pressable>
           ))}
         </View>
 
         {activeTab === 'finance' && (
-          <>
-            <View className="mt-6 flex-row flex-wrap justify-between gap-y-4">
-              <StatCard label="Total Booking" value={stats?.totalBookings ?? 0} icon="paperplane.fill" />
-              <StatCard label="Revenue (Approved)" value={formatIDR(stats?.totalRevenue ?? 0)} icon="banknote.fill" color="#2D5A27" />
-              <StatCard label="Pending Revenue" value={formatIDR(stats?.pendingRevenue ?? 0)} icon="clock.fill" color="#F59E0B" />
-              <StatCard label="Approved/Pending" value={`${stats?.approvedBookings ?? 0} / ${stats?.pendingBookings ?? 0}`} icon="checkmark.circle.fill" />
+          <View className="px-5 pt-6">
+            <View className="flex-row gap-x-4">
+              <StatCard title="Revenue" value={formatIDR(statsQuery.data?.totalRevenue || 0)} icon="banknote.fill" color="#2D5A27" />
+              <StatCard title="Pending" value={formatIDR(statsQuery.data?.pendingRevenue || 0)} icon="clock.fill" color="#B7791F" />
+            </View>
+            
+            <View className="mt-4 flex-row gap-x-4">
+              <StatCard title="Total Trips" value={statsQuery.data?.totalBookings || 0} icon="checkmark.circle.fill" color="#2D5A27" />
+              <StatCard title="Under Review" value={statsQuery.data?.pendingBookings || 0} icon="magnifyingglass" color="#617064" />
             </View>
 
-            <View className="mt-8 rounded-3xl border border-border bg-surface p-5">
-              <Text className="font-heading text-xl font-bold text-foreground">Validasi Cepat</Text>
-              <Text className="mt-1 font-body text-xs text-muted">Update status pembayaran secara manual.</Text>
-              
+            <View className="mt-8 rounded-3xl bg-surface p-5 border border-border">
+              <Text className="font-heading text-xl font-bold text-foreground">Validasi Booking</Text>
               <TextInput 
-                value={bookingCode} 
-                onChangeText={setBookingCode} 
-                autoCapitalize="characters" 
-                placeholder="Kode Booking (OR-XXXXXX)" 
-                placeholderTextColor="#879287" 
-                className="mt-4 rounded-2xl border border-border bg-background px-4 py-3.5 font-body text-sm text-foreground" 
+                placeholder="Masukkan Kode Booking (e.g. TRP-123)" 
+                value={bookingCode}
+                onChangeText={setBookingCode}
+                className="mt-4 rounded-2xl bg-neutral px-4 py-3 font-body text-sm text-foreground border border-border"
               />
-              
-              <View className="mt-4 flex-row flex-wrap gap-2">
-                {statuses.map((item) => (
+              <View className="mt-4 flex-row gap-x-2">
+                {statuses.map((s) => (
                   <Pressable 
-                    key={item} 
-                    onPress={() => setStatus(item)} 
-                    className={`rounded-full border px-4 py-2 ${status === item ? 'bg-primary border-primary' : 'border-border bg-background'}`}
+                    key={s} 
+                    onPress={() => setStatus(s)}
+                    className={`flex-1 rounded-xl py-2 items-center border ${status === s ? 'bg-primary border-primary' : 'bg-transparent border-border'}`}
                   >
-                    <Text className={`font-body text-[10px] font-extrabold uppercase tracking-widest ${status === item ? 'text-white' : 'text-foreground'}`}>
-                      {item === 'under_review' ? 'Review' : item === 'approved' ? 'Setujui' : 'Tolak'}
-                    </Text>
+                    <Text className={`font-body text-xs font-bold ${status === s ? 'text-white' : 'text-muted'}`}>{s.replace('_', ' ')}</Text>
                   </Pressable>
                 ))}
               </View>
-
-              <View className="mt-5">
+              <View className="mt-4">
                 <PrimaryButton 
-                  label={updateStatus.isPending ? 'Menyimpan...' : 'Simpan & Buka WhatsApp'} 
-                  disabled={updateStatus.isPending} 
-                  onPress={update} 
+                  label={updateStatus.isPending ? 'Memproses...' : 'Update Status'} 
+                  onPress={() => updateStatus.mutate({ bookingCode, status })}
                 />
               </View>
-              {message ? <Text className="mt-3 font-body text-xs text-center text-muted">{message}</Text> : null}
+              {message ? <Text className="mt-3 text-center font-body text-xs text-success font-bold">{message}</Text> : null}
             </View>
-
-            <View className="mt-8">
-              <Text className="font-heading text-xl font-bold text-foreground">Booking Terbaru</Text>
-              <View className="mt-4 gap-y-3">
-                {bookings.length === 0 ? (
-                  <View className="rounded-2xl border border-dashed border-border p-8 items-center">
-                    <Text className="font-body text-sm text-muted">Belum ada data booking.</Text>
-                  </View>
-                ) : (
-                  bookings.map((b) => (
-                    <View key={b.bookingCode} className="rounded-2xl border border-border bg-surface p-4">
-                      <View className="flex-row justify-between items-start">
-                        <View className="flex-1 pr-2">
-                          <Text className="font-body text-[10px] font-extrabold text-primary uppercase tracking-widest">{b.bookingCode}</Text>
-                          <Text className="mt-1 font-heading text-base font-bold text-foreground">{b.customerName}</Text>
-                          <Text className="font-body text-xs text-muted">{b.tripName}</Text>
-                        </View>
-                        <View className={`px-2 py-1 rounded-md ${b.status === 'approved' ? 'bg-success/10' : b.status === 'rejected' ? 'bg-error/10' : 'bg-warning/10'}`}>
-                          <Text className={`font-body text-[10px] font-bold ${b.status === 'approved' ? 'text-success' : b.status === 'rejected' ? 'text-error' : 'text-warning'}`}>
-                            {b.status.toUpperCase()}
-                          </Text>
-                        </View>
-                      </View>
-                      <View className="mt-3 pt-3 border-t border-border flex-row justify-between items-center">
-                        <Text className="font-body text-xs text-muted">{new Date(b.submittedAt).toLocaleDateString('id-ID')}</Text>
-                        <Text className="font-body text-sm font-extrabold text-foreground">{formatIDR(b.total)}</Text>
-                      </View>
-                    </View>
-                  ))
-                )}
-              </View>
-            </View>
-          </>
+          </View>
         )}
 
         {activeTab === 'leads' && (
-          <View className="mt-6">
-            <Text className="font-heading text-xl font-bold text-foreground">Lead CRM</Text>
-            <View className="mt-4 gap-y-3">
-              {(leadsQuery.data ?? []).map((lead: any) => (
-                <Pressable key={lead.id} onPress={() => setSelectedLeadId(lead.id)} className="rounded-2xl border border-border bg-surface p-4 active:opacity-70">
+          <View className="px-5 pt-6">
+            <Text className="font-heading text-xl font-bold text-foreground">CRM & Leads</Text>
+            <Text className="mt-1 font-body text-xs text-muted">Pelacakan calon peserta berdasarkan skor aktivitas.</Text>
+            
+            <View className="mt-6 gap-y-4">
+              {leadsQuery.data?.map((lead) => (
+                <Pressable 
+                  key={lead.id} 
+                  onPress={() => setSelectedLeadId(lead.id)}
+                  className="rounded-2xl border border-border bg-surface p-4"
+                >
                   <View className="flex-row justify-between items-center">
-                    <View>
+                    <View className="flex-1">
                       <Text className="font-heading text-base font-bold text-foreground">{lead.name || 'Anonymous'}</Text>
                       <Text className="font-body text-xs text-muted">{lead.phone || lead.email || 'No contact'}</Text>
                     </View>
                     <View className="items-end">
-                      <View className="rounded-full bg-primary/10 px-2 py-1">
-                        <Text className="font-body text-[10px] font-bold text-primary">Score: {lead.score}</Text>
+                      <View className="rounded-full bg-accent px-2 py-1">
+                        <Text className="font-body text-[10px] font-bold text-primary">SCORE: {lead.score}</Text>
                       </View>
-                      <Text className="mt-1 font-body text-[10px] text-muted">{lead.status}</Text>
+                      <Text className="mt-1 font-body text-[10px] text-muted uppercase">{lead.status}</Text>
                     </View>
                   </View>
-                  <Text className="mt-2 font-body text-[10px] text-muted">Interest: {lead.productInterest || 'General'}</Text>
                 </Pressable>
               ))}
             </View>
@@ -182,34 +142,43 @@ export default function AdminDashboardScreen() {
         )}
 
         {activeTab === 'trips' && (
-          <View className="mt-6">
-            <Text className="font-heading text-xl font-bold text-foreground">Manajemen Trip</Text>
-            <View className="mt-4 gap-y-3">
-              {(tripsQuery.data ?? []).map((item: any) => {
-                const trip = item.trip;
-                const dest = item.destination;
-                return (
-                  <View key={trip.id} className="rounded-2xl border border-border bg-surface p-4">
-                    <View className="flex-row justify-between items-center">
-                      <View className="flex-1">
-                        <Text className="font-heading text-base font-bold text-foreground">{trip.title}</Text>
-                        <Text className="font-body text-xs text-muted">{dest ? `${dest.name}, ${dest.region}` : 'No Location'} · {formatIDR(parseFloat(trip.priceBase))}</Text>
-                      </View>
-                      <View className={`rounded-full px-3 py-1 ${trip.isVerified ? 'bg-success/10' : 'bg-error/10'}`}>
-                        <Text className={`font-body text-[10px] font-bold ${trip.isVerified ? 'text-success' : 'text-error'}`}>
-                          {trip.isVerified ? 'VERIFIED' : 'UNVERIFIED'}
-                        </Text>
-                      </View>
+          <View className="px-5 pt-6">
+            <Text className="font-heading text-xl font-bold text-foreground">Product Management</Text>
+            <Text className="mt-1 font-body text-xs text-muted">Kelola status verifikasi dan visibilitas trip.</Text>
+            
+            <View className="mt-6 gap-y-4">
+              {tripsQuery.data?.map(({ trip }: any) => (
+                <View key={trip.id} className="rounded-2xl border border-border bg-surface p-4">
+                  <View className="flex-row justify-between items-center">
+                    <View className="flex-1">
+                      <Text className="font-heading text-base font-bold text-foreground">{trip.title}</Text>
+                      <Text className="font-body text-xs text-muted">ID: {trip.slug}</Text>
                     </View>
+                    <Pressable 
+                      onPress={() => updateTrip.mutate({ id: trip.id, isVerified: !trip.isVerified })}
+                      className={`rounded-full px-3 py-1.5 ${trip.isVerified ? 'bg-success' : 'bg-neutral'}`}
+                    >
+                      <Text className={`font-body text-[10px] font-bold ${trip.isVerified ? 'text-white' : 'text-muted'}`}>
+                        {trip.isVerified ? 'VERIFIED' : 'UNVERIFIED'}
+                      </Text>
+                    </Pressable>
                   </View>
-                );
-              })}
+                </View>
+              ))}
             </View>
           </View>
         )}
 
+        {activeTab === 'schedules' && (
+          <View className="px-5 pt-6">
+            <Text className="font-heading text-xl font-bold text-foreground">Trip Schedules</Text>
+            <Text className="mt-1 font-body text-xs text-muted">Pantau ketersediaan kursi keberangkatan.</Text>
+            <TripScheduleSection />
+          </View>
+        )}
+
         {activeTab === 'settings' && (
-          <View className="mt-6">
+          <View className="mt-6 px-5">
             <Text className="font-heading text-xl font-bold text-foreground">Business Configuration</Text>
             <Text className="mt-1 font-body text-xs text-muted">Update pengaturan operasional global.</Text>
             
@@ -292,46 +261,35 @@ export default function AdminDashboardScreen() {
               </Pressable>
             </View>
             
-            <TextInput 
-              value={testTitle} 
-              onChangeText={setTestTitle} 
-              placeholder="Judul Notifikasi" 
-              placeholderTextColor="#879287" 
-              className="rounded-2xl border border-border bg-background px-4 py-3.5 font-body text-sm text-foreground" 
-            />
-            
-            <TextInput 
-              value={testBody} 
-              onChangeText={setTestBody} 
-              placeholder="Isi Notifikasi" 
-              placeholderTextColor="#879287" 
-              multiline
-              className="mt-4 h-24 rounded-2xl border border-border bg-background px-4 py-3.5 font-body text-sm text-foreground" 
-            />
-
-            <View className="mt-6">
+            <View className="gap-y-4">
+              <View>
+                <Text className="font-body text-xs text-muted mb-2">Judul Notifikasi</Text>
+                <TextInput 
+                  value={testTitle}
+                  onChangeText={setTestTitle}
+                  className="rounded-2xl bg-neutral px-4 py-3 font-body text-sm text-foreground border border-border"
+                />
+              </View>
+              <View>
+                <Text className="font-body text-xs text-muted mb-2">Pesan</Text>
+                <TextInput 
+                  value={testBody}
+                  onChangeText={setTestBody}
+                  multiline
+                  numberOfLines={3}
+                  className="rounded-2xl bg-neutral px-4 py-3 font-body text-sm text-foreground border border-border h-24"
+                />
+              </View>
               <PrimaryButton 
-                label={sendTestMutation.isPending ? 'Mengirim...' : 'Kirim ke Saya'} 
-                disabled={sendTestMutation.isPending} 
-                onPress={async () => {
-                  try {
-                    await sendTestMutation.mutateAsync({ title: testTitle, body: testBody });
-                    alert('Notifikasi terkirim!');
-                  } catch (e) {
-                    alert('Gagal mengirim: ' + (e instanceof Error ? e.message : String(e)));
-                  }
-                }} 
+                label={sendTestNotification.isPending ? 'Mengirim...' : 'Kirim Sekarang'} 
+                onPress={() => sendTestNotification.mutate({ title: testTitle, body: testBody })}
               />
             </View>
-            
-            <Text className="mt-4 font-body text-[10px] text-muted text-center">
-              Catatan: Pastikan Anda memberikan izin notifikasi pada perangkat fisik untuk menerima pesan ini.
-            </Text>
           </View>
         </View>
       </Modal>
 
-      <Modal visible={Boolean(selectedLeadId)} transparent animationType="slide">
+      <Modal visible={!!selectedLeadId} transparent animationType="slide">
         <View className="flex-1 bg-black/50 justify-end">
           <View className="bg-background rounded-t-[32px] p-6 h-[80%]">
             <View className="flex-row justify-between items-center mb-6">
@@ -342,47 +300,34 @@ export default function AdminDashboardScreen() {
             </View>
             
             {leadDetailsQuery.isLoading ? (
-              <Text className="font-body text-muted">Loading details...</Text>
-            ) : leadDetailsQuery.data ? (
+              <Text className="font-body text-muted">Memuat data...</Text>
+            ) : leadDetailsQuery.data && (
               <ScrollView showsVerticalScrollIndicator={false}>
-                <View className="rounded-3xl bg-neutral p-5">
-                  <Text className="font-body text-xs font-extrabold text-primary uppercase tracking-widest">Customer Info</Text>
-                  <Text className="mt-2 font-heading text-xl font-bold text-foreground">{(leadDetailsQuery.data as any).name}</Text>
-                  <Text className="mt-1 font-body text-sm text-muted">{(leadDetailsQuery.data as any).phone}</Text>
-                  <Text className="font-body text-sm text-muted">{(leadDetailsQuery.data as any).email}</Text>
-                  
-                  <View className="mt-4 flex-row gap-4">
-                    <View>
-                      <Text className="font-body text-[10px] text-muted uppercase">Score</Text>
-                      <Text className="font-body text-lg font-extrabold text-primary">{(leadDetailsQuery.data as any).score}</Text>
+                <View className="rounded-2xl bg-neutral p-4">
+                  <Text className="font-heading text-lg font-bold text-foreground">{(leadDetailsQuery.data as any).name}</Text>
+                  <Text className="font-body text-sm text-muted">{(leadDetailsQuery.data as any).phone} · {(leadDetailsQuery.data as any).email}</Text>
+                  <View className="mt-3 flex-row items-center">
+                    <View className="rounded-full bg-primary px-3 py-1">
+                      <Text className="font-body text-xs font-bold text-white">Score: {(leadDetailsQuery.data as any).score}</Text>
                     </View>
-                    <View>
-                      <Text className="font-body text-[10px] text-muted uppercase">Status</Text>
-                      <Text className="font-body text-lg font-extrabold text-foreground">{(leadDetailsQuery.data as any).status}</Text>
-                    </View>
+                    <Text className="ml-3 font-body text-xs text-muted uppercase">{(leadDetailsQuery.data as any).status}</Text>
                   </View>
                 </View>
-
-                <Text className="mt-8 font-heading text-lg font-bold text-foreground">Activity Timeline</Text>
-                <View className="mt-4 gap-y-4">
-                  {((leadDetailsQuery.data as any).activities || []).map((act: any) => (
-                    <View key={act.id} className="flex-row">
-                      <View className="w-10 items-center">
-                        <View className="h-2 w-2 rounded-full bg-primary mt-2" />
-                        <View className="flex-1 w-px bg-border" />
-                      </View>
-                      <View className="flex-1 pb-4">
-                        <Text className="font-body text-sm font-bold text-foreground">{act.action.replace(/_/g, ' ')}</Text>
-                        <Text className="font-body text-[10px] text-muted">{new Date(act.createdAt).toLocaleString()}</Text>
-                        {act.scoreAdded > 0 && (
-                          <Text className="mt-1 font-body text-[10px] text-primary font-bold">+{act.scoreAdded} points</Text>
-                        )}
-                      </View>
+                
+                <Text className="mt-6 font-heading text-lg font-bold text-foreground">Aktivitas Terbaru</Text>
+                <View className="mt-3 gap-y-3">
+                  {leadDetailsQuery.data.activities.map((act: any) => (
+                    <View key={act.id} className="border-l-2 border-primary/20 pl-4 py-1">
+                      <Text className="font-body text-sm font-bold text-foreground">{act.action.replace('_', ' ')}</Text>
+                      <Text className="font-body text-xs text-muted">{new Date(act.createdAt).toLocaleString()}</Text>
+                      {act.scoreAdded !== 0 && (
+                        <Text className="font-body text-[10px] text-primary font-bold">+{act.scoreAdded} Points</Text>
+                      )}
                     </View>
                   ))}
                 </View>
               </ScrollView>
-            ) : null}
+            )}
           </View>
         </View>
       </Modal>
@@ -390,63 +335,63 @@ export default function AdminDashboardScreen() {
   );
 }
 
-function StatCard({ label, value, icon, color = '#1A251B' }: { label: string; value: string | number; icon: string; color?: string }) {
+function StatCard({ title, value, icon, color }: { title: string; value: string | number; icon: any; color: string }) {
   return (
-    <View className="w-[48%] rounded-3xl border border-border bg-surface p-4">
-      <View className="h-8 w-8 items-center justify-center rounded-xl bg-neutral mb-3">
-        <IconSymbol name={icon as any} size={16} color={color} />
+    <View className="flex-1 rounded-3xl bg-surface p-4 border border-border shadow-sm">
+      <View style={{ backgroundColor: `${color}10` }} className="h-10 w-10 items-center justify-center rounded-2xl mb-3">
+        <IconSymbol name={icon} size={20} color={color} />
       </View>
-      <Text className="font-body text-[10px] font-extrabold text-muted uppercase tracking-widest">{label}</Text>
-      <Text className="mt-1 font-heading text-lg font-bold text-foreground" style={{ color }}>{value}</Text>
+      <Text className="font-body text-[10px] font-bold uppercase tracking-widest text-muted">{title}</Text>
+      <Text className="mt-1 font-heading text-lg font-bold text-foreground">{value}</Text>
     </View>
   );
 }
 
-function TripScheduleSection({ trip }: { trip: any }) {
-  const { data: departures = [] } = trpc.trips.getDepartures.useQuery({ tripId: trip.id });
+function TripScheduleSection() {
+  const listQuery = trpc.booking.list.useQuery();
+  const tripsQuery = trpc.trips.list.useQuery();
   
+  const schedules = tripsQuery.data?.map(({ trip }: any) => {
+    const tripBookings = listQuery.data?.filter(b => b.tripName === trip.title) || [];
+    return {
+      id: trip.id,
+      title: trip.title,
+      totalSeats: trip.seats || 30,
+      bookedSeats: tripBookings.reduce((sum, b) => sum + (b as any).participantCount, 0),
+    };
+  });
+
   return (
-    <View className="mb-4 rounded-3xl border border-border bg-surface p-5">
-      <Text className="font-heading text-lg font-bold text-foreground">{trip.title}</Text>
-      <View className="mt-3 gap-y-2">
-        {departures.length === 0 ? (
-          <Text className="font-body text-xs text-muted italic">Belum ada jadwal keberangkatan.</Text>
-        ) : (
-          departures.map((d: any) => {
-            const usage = ((d.seatsTotal - d.seatsAvailable) / d.seatsTotal) * 100;
-            return (
-              <View key={d.id} className="rounded-xl bg-background p-3">
-                <View className="flex-row justify-between items-center">
-                  <Text className="font-body text-xs font-bold text-foreground">
-                    {new Date(d.startDate).toLocaleDateString('id-ID')}
-                  </Text>
-                  <Text className="font-body text-[10px] text-muted">
-                    {d.seatsAvailable} / {d.seatsTotal} Kursi
-                  </Text>
-                </View>
-                <View className="mt-2 h-1.5 w-full rounded-full bg-neutral overflow-hidden">
-                  <View 
-                    className={`h-full rounded-full ${usage > 90 ? 'bg-error' : usage > 70 ? 'bg-warning' : 'bg-primary'}`} 
-                    style={{ width: `${usage}%` }} 
-                  />
-                </View>
-              </View>
-            );
-          })
-        )}
-      </View>
+    <View className="mt-6 gap-y-4">
+      {schedules?.map((s) => (
+        <View key={s.id} className="rounded-2xl border border-border bg-surface p-4">
+          <View className="flex-row justify-between items-center mb-3">
+            <Text className="font-heading text-base font-bold text-foreground">{s.title}</Text>
+            <Text className="font-body text-xs text-muted">{s.bookedSeats} / {s.totalSeats} Kursi</Text>
+          </View>
+          <View className="h-2 w-full bg-neutral rounded-full overflow-hidden">
+            <View 
+              style={{ width: `${Math.min((s.bookedSeats / s.totalSeats) * 100, 100)}%` }} 
+              className={`h-full ${s.bookedSeats >= s.totalSeats ? 'bg-error' : 'bg-primary'}`} 
+            />
+          </View>
+        </View>
+      ))}
     </View>
   );
 }
 
 function ConfigItem({ title, description, onPress }: { title: string; description: string; onPress?: () => void }) {
   return (
-    <Pressable onPress={onPress} className="rounded-2xl border border-border bg-surface p-4 flex-row items-center active:opacity-70">
+    <Pressable 
+      onPress={onPress}
+      className="flex-row items-center rounded-2xl border border-border bg-surface p-4"
+    >
       <View className="flex-1">
         <Text className="font-heading text-base font-bold text-foreground">{title}</Text>
         <Text className="mt-1 font-body text-xs text-muted">{description}</Text>
       </View>
-      <IconSymbol name="chevron.right" size={18} color="#2D5A27" />
+      <IconSymbol name="chevron.right" size={18} color="#617064" />
     </Pressable>
   );
 }

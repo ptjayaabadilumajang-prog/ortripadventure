@@ -5,7 +5,7 @@ import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { ScreenContainer } from '@/components/screen-container';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PrimaryButton, SectionHeader } from '@/components/trip-ui';
-import { buildBookingWhatsAppMessage, formatIDR, gallery, getRanuPackage, getTrip, guides, ranuFacilities, ranuMeals, ranuPackages, ranuTimeline, testimonials } from '@/lib/demo-data';
+import { buildBookingWhatsAppMessage, formatIDR, gallery, getRanuPackage, getTrip, ranuFacilities, ranuMeals, ranuPackages, ranuTimeline, testimonials } from '@/lib/demo-data';
 import { trpc } from '@/lib/trpc';
 import { openWhatsApp } from '@/components/whatsapp-fab';
 import { RanuRouteMap } from '@/components/ranu-route-map';
@@ -13,11 +13,6 @@ import { RanuRouteMap } from '@/components/ranu-route-map';
 export default function TripDetailScreen() {
   const { id, package: packageId } = useLocalSearchParams<{ id: string; package?: string }>();
   const { data: tripData } = trpc.trips.getBySlug.useQuery({ slug: id });
-  const logActivityMutation = trpc.crm.logActivity.useMutation();
-  
-  // Log view activity (client-side simple lead tracking would need a persistent leadId, 
-  // but for now we log if we had one or just skip for anonymous)
-  
   // Fallback to demo data if DB entry not found
   const demoTrip = getTrip(id);
   const trip = tripData ? {

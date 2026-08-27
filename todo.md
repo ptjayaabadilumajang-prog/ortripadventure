@@ -87,3 +87,7 @@
 - [x] Securely upload and attach four legal company documents to the admin-only area.
 - [x] Implement legal metadata storage and verification status in the database.
 - [x] Add a protected Legal Documents section to the Admin Settings tab.
+- [x] Fix missing cross-platform icon mappings that could crash secondary screens.
+- [x] Move push-token mutation inside the tRPC provider context to prevent the RootLayout crash.
+- [x] Fix Admin Dashboard TypeScript data-shape errors and restore a clean Metro bundle.
+- [x] Verify Home and Admin routes render after the stability fix.
